@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>N2 · רתמת .c-act על גוש הסגנון האמיתי</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================================
+   משמרת — מערכת עיצוב
+   כחול המותג נשמר לפעולה ולמצב בלבד. כל השאר: דיו, אפור־כחלחל, קו שערה.
+   ========================================================================== */
+:root{
+  /* מותג */
+  --brand:#1257d6;          /* הכחול מהלוגו */
+  --brand-ink:#0e46ab;      /* מצב לחיצה / hover */
+  --navy:#0f2a56;           /* הנייבי של הוורדמארק */
+
+  /* משטחים */
+  --bg:#f5f7fa; --surface:#fff; --surface-2:#eef1f7;
+  --text:#0d1b33; --muted:#5b6b85;
+  --border:#e3e8f0; --border-strong:#ccd6e6;
+
+  /* מצב */
+  --accent:var(--brand); --accent-2:var(--brand-ink); --accent-soft:#e8efff;
+  /* כחול מלא לכפתורים. נפרד מ---accent כי במצב כהה הטקסט והאייקונים
+     צריכים כחול בהיר, אבל כפתור מלא חייב כחול רווי כדי שלבן עליו ייקרא. */
+  --accent-solid:#1257d6; --accent-solid-h:#0e46ab;
+  --field:#fcfdff;
+  --green:#0d7a55; --green-soft:#e3f4ed;
+  --amber:#8d5b06; --amber-soft:#fbeed9;
+  /* ענבר = זהירות (תגיות, לוח אזהרה). אדום = הרסני (ביטול, שחרור עובד).
+     לפני ההפרדה שניהם היו ענבר, ו"ביטול השיבוץ" נראה כמו "דחוף". */
+  --danger:#b42318; --danger-soft:#fdecea;
+
+  --on-accent:#fff;
+
+  --ring:0 0 0 3px rgba(18,87,214,.20);
+  --shadow:0 1px 1px rgba(13,27,51,.04), 0 3px 8px -4px rgba(13,27,51,.12), 0 16px 32px -22px rgba(13,27,51,.45);
+  --shadow-lift:0 1px 1px rgba(13,27,51,.05), 0 6px 14px -6px rgba(13,27,51,.16), 0 26px 48px -26px rgba(13,27,51,.6);
+  --chev:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235b6b85' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+
+  /* כל מה שמשתנה בין הערכות יושב כאן כטוקן, ולא ככללי @media מפוזרים.
+     כך יש בלוק אחד בלבד לשכפל עבור הבחירה הידנית. */
+  --wm-filter:none;                              /* הוורדמארק בצבעי מקור */
+  --picker-filter:none;                          /* אייקון בורר התאריך של הדפדפן */
+  /* אריחי OSM בהירים תמיד. הפילטר כויל על נתניה, מפרץ חיפה ומרכז
+     תל אביב — אל תשנה בו מספר בלי לכייל מחדש מול אריחים אמיתיים.
+     חל על .leaflet-tile-pane בלבד; ב-.leaflet-container הוא היה הופך
+     גם את הסמנים, הפופאפים והעיגולים. */
+  --tiles-filter:none;
+  /* צל של סמן מעל אריחים. --shadow הוא צל של כרטיס ומרוח מדי כאן. */
+  --pin-shadow:0 2px 6px rgba(13,27,51,.32);
+  --toast-bg:var(--navy); --toast-border:transparent;
+  --auth-banner:url("assets/auth-banner.jpg");
+  --theme-t:0;   /* 0 בהיר, 1 כהה. מניע את הצלבת האייקונים במתג */
+
+  /* עקומות האטה. ease-out חד בהתחלה ומתמתן — תנועה שמרגישה
+     מגיבה ולא "מונפשת". אותה עקומה בכל המערכת. */
+  --ease:cubic-bezier(.22,1,.36,1);
+  --ease-soft:cubic-bezier(.4,0,.2,1);
+
+  --r:16px; --r-s:12px;
+}
+
+/* ============ הערכה הכהה ============
+   מוגדרת פעמיים בכוונה: פעם לפי העדפת המערכת, ופעם לבחירה ידנית
+   מפורשת. CSS לא מאפשר לאחד תנאי @media עם סלקטור רגיל.
+   >>> כל שינוי כאן חייב להיעשות בשני הבלוקים. <<< */
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --brand:#5c9bff; --brand-ink:#8ab8ff; --navy:#dbe7ff;
+    --bg:#0a1020; --surface:#111a2d; --surface-2:#1a2438;
+    --text:#e9eefb; --muted:#93a4c0;
+    --border:#27354f; --border-strong:#3a4c6b;
+    --accent-soft:#152a4f;
+    --accent-solid:#2563eb; --accent-solid-h:#1d4ed8;
+    /* השדה שקוע מתחת למשטח הלוח, אחרת הוא נבלע בו */
+    --field:#0b1322;
+    --green:#4cbf94; --green-soft:#0f2b23;
+    --amber:#dfad5f; --amber-soft:#2d2414;
+    --danger:#fa8a82; --danger-soft:#3a1614;
+    --ring:0 0 0 3px rgba(92,155,255,.26);
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 14px 34px -20px rgba(0,0,0,.9);
+    --shadow-lift:0 1px 2px rgba(0,0,0,.5), 0 24px 46px -24px rgba(0,0,0,1);
+    --chev:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2393a4c0' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    --wm-filter:brightness(0) invert(1);
+    --picker-filter:invert(1) brightness(1.7);
+    --tiles-filter:invert(1) hue-rotate(182deg) brightness(.86) contrast(1) saturate(.78);
+    --pin-shadow:0 2px 10px rgba(0,0,0,.62);
+    --toast-bg:#1d2b46; --toast-border:#3a4c6b;
+    --auth-banner:url("assets/auth-banner-dark.jpg");
+    --theme-t:1;
+  }
+}
+:root[data-theme="dark"]{
+  --brand:#5c9bff; --brand-ink:#8ab8ff; --navy:#dbe7ff;
+  --bg:#0a1020; --surface:#111a2d; --surface-2:#1a2438;
+  --text:#e9eefb; --muted:#93a4c0;
+  --border:#27354f; --border-strong:#3a4c6b;
+  --accent-soft:#152a4f;
+  --accent-solid:#2563eb; --accent-solid-h:#1d4ed8;
+  --field:#0b1322;
+  --green:#4cbf94; --green-soft:#0f2b23;
+  --amber:#dfad5f; --amber-soft:#2d2414;
+  --danger:#fa8a82; --danger-soft:#3a1614;
+  --ring:0 0 0 3px rgba(92,155,255,.26);
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 14px 34px -20px rgba(0,0,0,.9);
+  --shadow-lift:0 1px 2px rgba(0,0,0,.5), 0 24px 46px -24px rgba(0,0,0,1);
+  --chev:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2393a4c0' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  --wm-filter:brightness(0) invert(1);
+  --picker-filter:invert(1) brightness(1.7);
+  --tiles-filter:invert(1) hue-rotate(182deg) brightness(.86) contrast(1) saturate(.78);
+  --pin-shadow:0 2px 10px rgba(0,0,0,.62);
+  --toast-bg:#1d2b46; --toast-border:#3a4c6b;
+  --auth-banner:url("assets/auth-banner-dark.jpg");
+  --theme-t:1;
+}
+*{box-sizing:border-box}
+/* .btn מקבל display:inline-flex, שגובר על [hidden] של הדפדפן.
+   בלי השורה הזו כפתור היציאה והניווט התחתון לא היו נסתרים לפני כניסה. */
+[hidden]{display:none !important}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:"Heebo",-apple-system,"Segoe UI",Arial,sans-serif;
+  font-size:16px;line-height:1.55;-webkit-text-size-adjust:100%;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  font-feature-settings:"tnum" 1,"lnum" 1;
+}
+button,input,select,textarea{font-family:inherit}
+::selection{background:var(--accent-soft);color:var(--accent-2)}
+:focus-visible{outline:none}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px 116px}
+html{scroll-behavior:smooth}
+
+/* ---------- תנועה ----------
+   ה-JS מצייר את #view מחדש אחרי כל פעולה, ולכן אנימציית הכניסה
+   מתנגנת שוב בכל פעם. משך קצר ומרחק קטן בכוונה: ארוך מזה מרגיש איטי,
+   לא יוקרתי. ההשהיות מדורגות רק על ששת הבלוקים הראשונים. */
+@keyframes riseIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+#view>*{animation:riseIn .26s var(--ease) both}
+#view>*:nth-child(2){animation-delay:.03s}
+#view>*:nth-child(3){animation-delay:.06s}
+#view>*:nth-child(4){animation-delay:.09s}
+#view>*:nth-child(5){animation-delay:.12s}
+#view>*:nth-child(n+6){animation-delay:.14s}
+
+/* ---------- כותרת עליונה ---------- */
+header.top{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:30}
+.top-in{max-width:720px;margin:0 auto;padding:9px 16px;display:flex;align-items:center;gap:9px}
+/* לוקאפ המותג: הנכסים המקוריים מגיליון המותג */
+.logo{display:flex;align-items:center;gap:9px;min-width:0}
+.logo .dot{width:30px;height:30px;flex:none;display:block}
+/* על רקע כהה הטוקן הופך את הוורדמארק ל-knockout לבן, כמקובל בספר מותג */
+.logo .wordmark{height:21px;width:auto;display:block;filter:var(--wm-filter)}
+.spacer{flex:1}
+
+/* ---------- מתג ערכה ---------- */
+#themeBtn{flex:none;width:34px;height:34px;padding:0;border-radius:50%;cursor:pointer;
+  display:grid;place-items:center;background:var(--surface-2);
+  border:1px solid var(--border);color:var(--muted);
+  transition:background .15s,color .15s,border-color .15s}
+#themeBtn:hover{background:var(--border);color:var(--text);border-color:var(--border-strong)}
+#themeBtn:focus-visible{box-shadow:var(--ring)}
+#themeBtn svg{width:18px;height:18px;display:block}
+/* שני האייקונים מוערמים באותה משבצת ומצליבים בסיבוב, במקום לקפוץ.
+   --theme-t הוא 0 או 1, ולכן אותו טוקן מניע גם את השקיפות וגם את הזווית. */
+#themeBtn svg{grid-area:1/1;
+  transition:opacity .22s var(--ease-soft),transform .34s var(--ease)}
+#themeBtn .sun{opacity:var(--theme-t);
+  transform:rotate(calc((1 - var(--theme-t)) * -80deg)) scale(calc(.6 + var(--theme-t) * .4))}
+#themeBtn .moon{opacity:calc(1 - var(--theme-t));
+  transform:rotate(calc(var(--theme-t) * 80deg)) scale(calc(1 - var(--theme-t) * .4))}
+/* מעל הבאנר: זכוכית שקופה, כדי שייקרא גם על הגל הכחול וגם על הכהה */
+body:has(#authForm) #themeBtn{
+  background:rgba(125,140,170,.28);border-color:rgba(255,255,255,.35);color:#fff;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+body:has(#authForm) #themeBtn:hover{background:rgba(125,140,170,.45)}
+/* שם המשתמש לא דוחף את הלוקאפ החוצה במסכים צרים */
+#who{max-width:34vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- מסך הכניסה: רגע המותג ----------
+   הבאנר והמרכוז נוספים ב-CSS בלבד דרך :has() — ה-JS לא נגע.
+   הכותרת יורדת לשכבה שקופה מעל הבאנר — הלוקאפ כבר בתוכו, אבל מתג
+   הערכה חייב להישאר נגיש, ולכן היא לא מוסתרת לגמרי.
+   הדהייה לתחתית נעשית ב-mask ולא באלפא של הקובץ, כדי שהוא יישאר JPEG קל. */
+body:has(#authForm) header.top{
+  position:absolute;inset-inline:0;top:0;background:transparent;border-bottom:0}
+body:has(#authForm) .logo{display:none}
+#view:has(#authForm){text-align:center}
+#view:has(#authForm)::before{
+  content:"";display:block;width:calc(100% + 32px);aspect-ratio:941/640;
+  /* שוליים תחתונים שליליים: התוכן נכנס לתוך אזור הדהייה במקום
+     להיערם אחריו, אחרת נוצר חלל מת של כ-100px מתחת ללוגו */
+  margin:0 -16px -46px;
+  background:var(--auth-banner) center top/cover no-repeat;
+  -webkit-mask-image:linear-gradient(to bottom,#000 56%,transparent 96%);
+          mask-image:linear-gradient(to bottom,#000 56%,transparent 96%)}
+#view:has(#authForm) h1{margin-top:0}
+#view:has(#authForm) .sub{margin-inline:auto}
+#view:has(#authForm) .panel{text-align:start}
+/* מעל רוחב הטלפון היחס 941/640 נותן באנר של ~510px שמשתלט על המסך.
+   יחס שטוח יותר + מיקום 40% שומר את הלוקאפ במרכז החיתוך. */
+@media (min-width:700px){
+  #view:has(#authForm)::before{
+    /* 28% ולא 50%: הלוקאפ יושב ב-40% מגובה המקור, ולכן מרכוז החלון
+       דורש הסטה למעלה. בלי זה הוא נצמד לקצה העליון. */
+    aspect-ratio:941/360;background-position:center 28%;margin-bottom:-34px}
+}
+
+/* ---------- טיפוגרפיה ---------- */
+h1{font-size:25px;font-weight:800;margin:26px 0 5px;letter-spacing:-.9px;line-height:1.25}
+h2{font-size:15px;font-weight:800;margin:28px 0 2px;letter-spacing:-.2px;color:var(--text)}
+h2::before{content:"";display:inline-block;width:13px;height:2px;border-radius:2px;
+  background:var(--brand);vertical-align:middle;margin-inline-end:9px;transform:translateY(-2px)}
+.sub{color:var(--muted);font-size:14.5px;margin-bottom:16px;max-width:52ch}
+
+/* ---------- לוחות וטפסים ---------- */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:18px;box-shadow:var(--shadow);margin-top:14px}
+.panel.warn{border-color:var(--border-strong);position:relative;overflow:hidden}
+.panel.warn::before{content:"";position:absolute;inset-block:0;inset-inline-start:0;width:3px;background:var(--amber)}
+label{display:block;font-size:12.5px;font-weight:700;margin:14px 0 6px;color:var(--muted);letter-spacing:-.1px}
+input,select,textarea{width:100%;font-size:16px;color:var(--text);background:var(--field);
+  border:1px solid var(--border-strong);border-radius:var(--r-s);padding:12.5px 14px;
+  transition:border-color .18s var(--ease-soft),box-shadow .18s var(--ease-soft),background .18s}
+input::placeholder,textarea::placeholder{color:var(--muted);opacity:.62}
+textarea{min-height:92px;resize:vertical;line-height:1.55}
+/* הרשימה הנפתחת עצמה היא של מערכת ההפעלה ואי אפשר לעצב אותה.
+   בנייד זו דווקא ההתנהגות הנכונה (גלגלת iOS / דיאלוג אנדרואיד),
+   ולכן מושקע כאן המצב הסגור: יעד גדול, חץ מיושר, מעבר רך. */
+select{appearance:none;-webkit-appearance:none;cursor:pointer;
+  background-image:var(--chev);background-repeat:no-repeat;
+  background-position:left 13px center;background-size:17px;padding-inline-start:40px}
+input:hover,select:hover,textarea:hover{border-color:var(--muted)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:var(--ring)}
+/* בורר התאריך/שעה של הדפדפן — האייקון שלו מיושר ומקבל את צבע הממשק */
+input[type=date]::-webkit-calendar-picker-indicator,
+input[type=time]::-webkit-calendar-picker-indicator{
+  cursor:pointer;opacity:.55;transition:opacity .15s;
+  filter:var(--picker-filter)}
+input[type=date]:hover::-webkit-calendar-picker-indicator,
+input[type=time]:hover::-webkit-calendar-picker-indicator{opacity:.9}
+.two{display:flex;gap:10px}
+.two>div{flex:1}
+
+/* ---------- טווח הנסיעה ----------
+   --fill מתעדכן מסקריפט הליטוש. CSS לבדו לא יודע לצבוע את הקטע
+   שכבר נבחר, והפס בלי מילוי לא מראה למשתמש איפה הוא עומד.
+   ב-RTL המינימום נמצא מימין, ולכן המילוי הולך "to left". */
+input[type=range]{-webkit-appearance:none;appearance:none;background:none;border:0;
+  padding:0;height:26px;box-shadow:none;cursor:pointer;--fill:0%}
+input[type=range]:hover,input[type=range]:focus{border:0;box-shadow:none}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:99px;
+  background:linear-gradient(to left,var(--accent-solid) var(--fill),var(--surface-2) var(--fill));
+  border:1px solid var(--border)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;margin-top:-9px;
+  border-radius:50%;background:var(--surface);border:3px solid var(--accent-solid);
+  box-shadow:0 1px 3px rgba(13,27,51,.3);
+  transition:transform .16s var(--ease),box-shadow .16s var(--ease)}
+input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.08)}
+input[type=range]:active::-webkit-slider-thumb{transform:scale(1.16);box-shadow:0 2px 8px rgba(13,27,51,.35)}
+input[type=range]::-moz-range-track{height:6px;border-radius:99px;
+  background:linear-gradient(to left,var(--accent-solid) var(--fill),var(--surface-2) var(--fill));
+  border:1px solid var(--border)}
+input[type=range]::-moz-range-thumb{width:19px;height:19px;border-radius:50%;background:var(--surface);
+  border:3px solid var(--accent-solid);box-shadow:0 1px 3px rgba(13,27,51,.3)}
+input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:var(--ring)}
+
+/* ---------- כפתורים ---------- */
+.btn{font-weight:700;font-size:15.5px;letter-spacing:-.25px;border-radius:var(--r-s);
+  padding:13.5px 20px;border:1px solid var(--accent-solid);background:var(--accent-solid);color:var(--on-accent);
+  cursor:pointer;width:100%;margin-top:18px;text-decoration:none;text-align:center;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  -webkit-tap-highlight-color:transparent;
+  box-shadow:0 1px 2px rgba(18,87,214,.22);
+  transition:background .18s var(--ease-soft),border-color .18s var(--ease-soft),
+             transform .12s var(--ease),box-shadow .18s var(--ease-soft)}
+.btn:hover{background:var(--accent-solid-h);border-color:var(--accent-solid-h)}
+/* לחיצה: התכווצות קלה במקום הזזה. זה מה שנותן תחושת "נלחץ" אמיתית */
+.btn:active{transform:scale(.978);box-shadow:none;transition-duration:.05s}
+.btn:focus-visible{box-shadow:var(--ring)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.btn.ghost{background:transparent;color:var(--text);border-color:var(--border-strong);
+  width:auto;padding:8px 14px;font-size:14px;margin:0;box-shadow:none}
+.btn.ghost:hover{background:var(--surface-2);border-color:var(--muted);color:var(--text)}
+.btn.soft{background:var(--surface-2);color:var(--text);border-color:var(--border-strong);box-shadow:none}
+.btn.soft:hover{background:var(--border);border-color:var(--muted)}
+.btn.danger{background:transparent;color:var(--danger);border-color:var(--danger);box-shadow:none}
+.btn.danger:hover{background:var(--danger-soft);border-color:var(--danger);color:var(--danger)}
+.link{background:none;border:0;color:var(--accent);font-weight:700;cursor:pointer;
+  font-size:14.5px;padding:8px;border-radius:8px}
+.link:hover{color:var(--accent-2);text-decoration:underline;text-underline-offset:3px}
+.link:focus-visible{box-shadow:var(--ring)}
+.back{background:none;border:0;color:var(--muted);font-weight:700;font-size:14px;
+  padding:16px 0 0;cursor:pointer;border-radius:6px}
+.back:hover{color:var(--text)}
+
+.err{background:var(--amber-soft);color:var(--amber);border-radius:var(--r-s);
+  padding:11px 13px;font-size:14px;margin-top:14px;font-weight:600;
+  border:1px solid color-mix(in srgb,var(--amber) 22%,transparent)}
+.note{font-size:12.5px;color:var(--muted);margin-top:12px;line-height:1.75}
+
+.bar{display:flex;gap:10px;align-items:center;margin:18px 0 4px;flex-wrap:wrap}
+.bar .grow{flex:1;min-width:150px}
+.bar label{margin:0 0 6px}
+
+/* ---------- שורת בחירה ----------
+   הייתה שורה עם קו מפריד; עכשיו יעד בחירה בפני עצמו שמשנה מצב כשנבחר.
+   שטח הלחיצה גדל מ-21px של התיבה לכל רוחב השורה. */
+.check{display:flex;gap:12px;align-items:flex-start;padding:14px 15px;margin-top:10px;
+  border:1px solid var(--border);border-radius:var(--r-s);background:var(--surface);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transition:border-color .18s var(--ease-soft),background .18s var(--ease-soft)}
+.check:hover{border-color:var(--border-strong)}
+.check:has(:checked){border-color:var(--accent);background:var(--accent-soft)}
+.check:active{transform:scale(.995)}
+
+/* תיבת סימון מותאמת. accent-color נותן את תיבת המערכת, שנראית שונה
+   בכל פלטפורמה ולא מתיישרת עם הרדיוסים שלנו. */
+.check input[type=checkbox]{
+  appearance:none;-webkit-appearance:none;position:relative;
+  width:22px;height:22px;flex:none;margin:0;padding:0;
+  border:2px solid var(--border-strong);border-radius:7px;
+  background:var(--field);cursor:pointer;box-shadow:none;
+  transition:background .18s var(--ease),border-color .18s var(--ease),box-shadow .15s}
+.check input[type=checkbox]:hover{border-color:var(--muted)}
+.check input[type=checkbox]:checked{background:var(--accent-solid);border-color:var(--accent-solid)}
+.check input[type=checkbox]:focus-visible{box-shadow:var(--ring)}
+/* הסימן עצמו. מיקום פיזי ולא לוגי — הוא סימטרי ואסור שיתהפך ב-RTL. */
+.check input[type=checkbox]::after{
+  content:"";position:absolute;left:6px;top:2px;width:5px;height:10px;
+  border:solid #fff;border-width:0 2.2px 2.2px 0;
+  transform:rotate(45deg) scale(.5);opacity:0;
+  transition:transform .2s var(--ease),opacity .12s linear}
+.check input[type=checkbox]:checked::after{transform:rotate(45deg) scale(1);opacity:1}
+
+.check .t{font-weight:700;font-size:14.5px;display:flex;align-items:center;gap:7px}
+.check .d{font-size:12.5px;color:var(--muted);line-height:1.55;display:block;margin-top:3px}
+
+/* ---------- כרטיסים ---------- */
+.list{display:flex;flex-direction:column;gap:11px;margin-top:14px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:17px 18px;box-shadow:var(--shadow);position:relative;
+  transition:box-shadow .18s cubic-bezier(.2,.8,.3,1),border-color .18s,transform .18s cubic-bezier(.2,.8,.3,1)}
+/* משמרת דחופה: פס מותג בקצה המוביל, כגבול אמיתי כדי שיישב בתוך העיגול */
+.card.urgent{border-inline-start:3px solid var(--brand);padding-inline-start:16px}
+.card.tap{cursor:pointer}
+.card.tap:hover{border-color:var(--border-strong);box-shadow:var(--shadow-lift);transform:translateY(-2px)}
+.card.tap:active{transform:translateY(0);box-shadow:var(--shadow);transition-duration:.06s}
+.card.dim{opacity:.55;box-shadow:none}
+.card.dim.urgent{border-inline-start-color:var(--border-strong)}
+.card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.card-head>div:first-child{min-width:0}
+.role{font-size:17.5px;font-weight:800;letter-spacing:-.5px;line-height:1.3}
+.biz{color:var(--muted);font-size:13.5px;margin-top:3px}
+/* המחיר לעולם לא נשבר לשתי שורות */
+.pay{text-align:end;flex:none}
+.pay .rate{font-size:22px;font-weight:800;color:var(--navy);white-space:nowrap;letter-spacing:-.7px}
+/* הסכום הוא הגיבור; סימן המטבע קטן ושקט לידו, כמו בתפריטים מודפסים */
+.rate .cur{font-size:.6em;font-weight:700;color:var(--muted);
+  letter-spacing:0;margin-inline-end:1px;vertical-align:.09em}
+.pay .per{font-size:11.5px;color:var(--muted);display:block;text-align:end;
+  margin-top:1px;white-space:nowrap}
+
+/* ---------- אייקונים ----------
+   mask על currentColor: כל אייקון יורש את צבע ההקשר שלו, כך שתגית
+   ירוקה מקבלת אייקון ירוק בלי כפילות הגדרות. החליף את האמוג'ים, שרונדרו
+   שונה בכל מערכת הפעלה ולא היו ניתנים לצביעה או ליישור. */
+.icon{display:inline-block;width:1.05em;height:1.05em;flex:none;
+  vertical-align:-.16em;background-color:currentColor;
+  -webkit-mask:var(--gl) center/contain no-repeat;
+          mask:var(--gl) center/contain no-repeat}
+.icon-bolt{--gl:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000'%3E%3Cpath d='M13.2 2 4.6 13.1a.6.6 0 0 0 .5 1h4.6l-.9 7.9a.6.6 0 0 0 1.1.4l8.6-11.1a.6.6 0 0 0-.5-1h-4.6l.9-7.9a.6.6 0 0 0-1.1-.4z'/%3E%3C/svg%3E")}
+.icon-van{--gl:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.8 15.8V8.2a1.5 1.5 0 0 1 1.5-1.5h8.4v9.1M12.7 10.1h3.6l3 3.5v2.2M2.8 15.8h1.6M9.2 15.8h4M18.7 15.8h1.7'/%3E%3Ccircle cx='6.6' cy='16.4' r='2'/%3E%3Ccircle cx='16.3' cy='16.4' r='2'/%3E%3C/svg%3E")}
+.icon-pin{--gl:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21.3c4.2-4.3 6.3-7.7 6.3-10.4a6.3 6.3 0 1 0-12.6 0c0 2.7 2.1 6.1 6.3 10.4z'/%3E%3Ccircle cx='12' cy='10.6' r='2.4'/%3E%3C/svg%3E")}
+.icon-phone{--gl:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6.6 3.4h3.1l1.3 3.7-1.9 1.4a12.3 12.3 0 0 0 5.4 5.4l1.4-1.9 3.7 1.3v3.1a1.9 1.9 0 0 1-2.1 1.9A15.8 15.8 0 0 1 4.7 5.5a1.9 1.9 0 0 1 1.9-2.1z'/%3E%3C/svg%3E")}
+.icon-nav{--gl:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000'%3E%3Cpath d='M20.8 3.2 3.6 10.6a.5.5 0 0 0 .1 1l7 2.2 2.2 7a.5.5 0 0 0 1 .1z'/%3E%3C/svg%3E")}
+.icon-chat{--gl:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.6 11.5a7.9 7.9 0 0 1-11.6 7L3.4 20.6l2.1-5.6a7.9 7.9 0 1 1 15.1-3.5z'/%3E%3C/svg%3E")}
+.icon-plus{--gl:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.1' stroke-linecap='round'%3E%3Cpath d='M12 5.2v13.6M5.2 12h13.6'/%3E%3C/svg%3E")}
+.icon-users{--gl:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 20.2v-1.9a3.8 3.8 0 0 0-3.8-3.8H6.5a3.8 3.8 0 0 0-3.8 3.8v1.9M21.3 20.2v-1.9a3.8 3.8 0 0 0-2.8-3.7M16.6 3.9a3.8 3.8 0 0 1 0 7.2'/%3E%3Ccircle cx='9.4' cy='7.4' r='3.7'/%3E%3C/svg%3E")}
+.icon-calendar{--gl:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.4' y='5' width='17.2' height='15.6' rx='3'/%3E%3Cpath d='M8 2.9v4.2M16 2.9v4.2M3.4 10.3h17.2'/%3E%3C/svg%3E")}
+.icon-calendar-plus{--gl:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.4' y='5' width='17.2' height='15.6' rx='3'/%3E%3Cpath d='M8 2.9v4.2M16 2.9v4.2M3.4 10.3h17.2M12 13.2v4.4M9.8 15.4h4.4'/%3E%3C/svg%3E")}
+.icon-clock{--gl:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.6'/%3E%3Cpath d='M12 7v5.2l3.4 2'/%3E%3C/svg%3E")}
+
+/* ---------- תגיות ---------- */
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tag{display:inline-flex;align-items:center;gap:5px;
+  font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;
+  background:var(--surface-2);color:var(--muted);
+  border:1px solid transparent;white-space:nowrap}
+.tag.today,.tag.need{background:var(--accent-soft);color:var(--accent-2);font-weight:700;
+  border-color:color-mix(in srgb,var(--brand) 20%,transparent)}
+.tag.hot{background:var(--amber-soft);color:var(--amber);font-weight:700;
+  border-color:color-mix(in srgb,var(--amber) 22%,transparent)}
+.tag.instant,.tag.done{background:var(--green-soft);color:var(--green);font-weight:700;
+  border-color:color-mix(in srgb,var(--green) 20%,transparent)}
+
+.desc{margin-top:11px;font-size:14px;color:var(--muted);white-space:pre-line;line-height:1.6}
+.card-foot{display:flex;gap:8px;align-items:center;margin-top:14px;flex-wrap:wrap}
+.card-foot .btn{width:auto;margin:0;padding:10px 17px;font-size:14.5px}
+.state{font-size:13.5px;font-weight:700;color:var(--green)}
+.who-row{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.who-name{font-size:15.5px;font-weight:700;letter-spacing:-.3px}
+.who-sub{font-size:13px;color:var(--muted)}
+.hint{font-size:13px;color:var(--muted);background:var(--surface-2);
+  border-radius:var(--r-s);padding:9px 12px;margin-top:12px;line-height:1.7}
+/* בלי הקו התחתון הכחול של הדפדפן — הקישורים כאן הם פעולות, לא הפניות */
+.hint a{color:var(--accent);text-decoration:none;font-weight:700;white-space:nowrap}
+.hint a:hover{color:var(--accent-2);text-decoration:underline;text-underline-offset:3px}
+/* בלי מסגרת וצל: תיבה ריקה בתוך תיבה נראית כמו תקלה, לא כמו מצב */
+.empty{text-align:center;padding:52px 24px;color:var(--muted);
+  background:none;border:0;border-radius:var(--r);font-size:14.5px;line-height:1.7}
+.empty .big{display:block;width:36px;height:36px;margin:0 auto 14px;opacity:.38}
+
+/* ---------- ניווט תחתון ---------- */
+/* מתג מצב, לא לשוניות. המשתמש צריך לדעת בלי לחשוב באיזה צד הוא
+   נמצא, ולכן הצד הפעיל צבוע מלא ולא רק מסומן. */
+nav.tabs{position:fixed;bottom:0;inset-inline:0;background:var(--surface);
+  border-top:1px solid var(--border);z-index:40;
+  padding:8px 12px calc(8px + env(safe-area-inset-bottom))}
+.tabs-in{max-width:720px;margin:0 auto;display:flex;gap:6px;
+  background:var(--surface-2);border:1px solid var(--border);border-radius:14px;padding:4px}
+.tab{flex:1;background:none;border:0;border-radius:11px;
+  padding:11px 8px;color:var(--muted);font-weight:700;font-size:14px;
+  letter-spacing:-.2px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:background .15s,color .15s}
+.tab .ic{width:20px;height:20px;display:block;line-height:0;flex:none}
+.tab:hover{color:var(--text)}
+/* --accent-solid ולא --accent: במצב כהה --accent הוא תכלת, ולבן עליו
+   יורד ל-2.77:1. אותו מלכוד שתוקן בכפתורים. */
+.tab.on{background:var(--accent-solid);color:var(--on-accent);
+  box-shadow:0 1px 2px rgba(18,87,214,.22)}
+
+.toast{position:fixed;bottom:88px;inset-inline:16px;max-width:400px;margin:0 auto;
+  background:var(--toast-bg);border:1px solid var(--toast-border);
+  color:#fff;padding:12px 18px;border-radius:12px;
+  font-weight:700;font-size:14.5px;text-align:center;z-index:60;
+  box-shadow:0 12px 32px -10px rgba(13,27,51,.6);
+  opacity:0;transform:translateY(10px) scale(.98);transition:.2s cubic-bezier(.2,.8,.3,1);pointer-events:none}
+.toast.on{opacity:1;transform:none}
+.toast:has(.toast-act){pointer-events:auto}
+.toast-act{margin-inline-start:14px;background:none;border:0;color:#fff;font-weight:900;
+  font-size:14.5px;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:2px 4px}
+/* ==========================================================================
+   M5 — שכבת המפה · בלוק זמני שכתב המפתח, לא המעצב
+   ‼ המעצב מחליף את כל הבלוק הזה לפי DESIGN-BRIEF של סבב M.
+   כאן יש גיאומטריה בלבד, מטוקנים קיימים. אין כאן צבע חדש, אין פילטר
+   לאריחי OSM במצב כהה (§3.2 בבריף), ואין מצבי hover/drag. אל תאשר
+   את הבלוק הזה עיצובית — הוא קיים רק כדי שאפשר יהיה לבדוק התנהגות.
+
+   שורה אחת כאן היא מבנית ולא קוסמטית ואסור שתיפול בהחלפה:
+   .map{position:relative;z-index:0} — Leaflet נותנת לשכבות הפנימיות
+   שלה z-index 400–700. בלי הקשר ערימה משלו, הן מצוירות מעל הכותרת
+   הדביקה (30) ומעל הניווט התחתון (40), והמפה מכסה את מתג המצב.
+   ========================================================================== */
+.map{position:relative;z-index:0;isolation:isolate;
+  height:min(62vh,560px);min-height:320px;margin-top:14px;
+  border:1px solid var(--border);border-radius:var(--r);overflow:hidden;
+  background:var(--surface-2)}
+.map-pick{height:280px;min-height:280px}
+
+/* ‼ כל כלל שמכוון למחלקה של Leaflet מקודד תחת .map בכוונה.
+   גיליון הסגנון של Leaflet נטען דינמית מה-CDN ונדחף לסוף ה-head —
+   כלומר אחרי הבלוק הזה. בסגוליות שווה המאוחר מנצח, ולכן הכללים
+   שלנו נדרסו בשקט: נמדד שה-tooltip נשאר rgb(255,255,255) על
+   rgb(34,34,34) למרות שעיצבנו אותו. .map מעלה את הסגוליות ל-0,2,0
+   ומנצח בלי תלות בסדר הטעינה ובלי !important.
+   אל תוריד את התחילית הזו מאף כלל leaflet-* כאן.
+
+   D12 — רווח מול חיבור בלי רווח, וזה ההבדל בין עובד ללא עובד:
+   `.map X` הוא (0,2,0). אם ל-Leaflet יש `.leaflet-container X` — גם
+   הוא (0,2,0), וזה תיקו שהם מנצחים בו כי הגיליון שלהם מאוחר יותר.
+   .map ו-.leaflet-container הם אותו אלמנט, ולכן במקרה כזה מחברים
+   בלי רווח: `.map.leaflet-container X` = (0,3,0). נסרקו כל הדריסות
+   כאן מול leaflet.css 1.9.4 — attribution היה התיקו האמיתי היחיד. */
+.map.leaflet-container{font-family:inherit;font-size:14px;background:var(--surface-2)}
+/* רק שכבת האריחים. הסמנים, הפופאפים, העיגולים והתוויות יושבים
+   בשכבות אחרות ונשארים בצבעי המותג. */
+.map .leaflet-tile-pane{filter:var(--tiles-filter)}
+
+/* סמן משמרת: גלולה עם התעריף, או עם מספר המשמרות באותה נקודה.
+   --accent-solid ולא --accent — לבן על תכלת יורד מתחת ליחס הניגודיות. */
+.pin-shift{display:inline-flex;align-items:center;justify-content:center;
+  min-width:46px;height:32px;padding:0 10px;border-radius:999px;
+  background:var(--accent-solid);color:var(--on-accent);
+  font-weight:800;font-size:13px;letter-spacing:-.3px;white-space:nowrap;
+  border:2px solid var(--surface);box-shadow:var(--pin-shadow);
+  transition:transform .14s var(--ease-soft)}
+/* על מפה צפופה, בלי זה לא רואים איזה סמן נפתח — ובמגע אין hover בכלל */
+.pin-shift.is-open{transform:translateY(-3px) scale(1.08);z-index:1000}
+.pin-shift.many{min-width:38px;font-size:14.5px}
+/* עסק בלי located_at יושב במרכז העיר. סיכה שנראית ודאית במקום שאינו
+   ודאי היא הבטחה שקרית לעובד שנוסע — ולכן מקווקוות ועמומה. */
+.pin-shift.approx{border-style:dashed;opacity:.8}
+.pin-city{display:block;width:18px;height:18px;border-radius:50%;box-sizing:border-box;
+  background:none;border:2px dashed var(--muted);opacity:.85}
+.pin-pick{display:block;width:22px;height:22px;border-radius:50%;box-sizing:border-box;
+  border:3px dashed var(--muted);background:var(--surface);opacity:.7}
+.pin-pick.on{border:3px solid var(--accent-solid);background:var(--accent-solid);
+  opacity:1;box-shadow:var(--shadow-lift)}
+
+/* עיגולי Leaflet הם path ב-SVG. Leaflet כותבת stroke/fill כמאפייני
+   מצגת, ומאפיין CSS גובר עליהם — ולכן הצבע נשלט מכאן ולא מה-JS. */
+.radius-ring{stroke:var(--accent);stroke-width:1.5;stroke-dasharray:6 6;
+  fill:var(--accent);fill-opacity:.07}
+.radius-ring.bound{stroke:var(--muted);fill:var(--muted);fill-opacity:.05}
+
+/* ‼ M12 — ערכי פתיחה מה-Tech Lead, ממתינים לכיול של המעצב בעיניים
+   בשני המצבים, כולל החץ. בלי הכלל הזה Leaflet מרנדרת לוחית לבנה
+   (rgb(255,255,255) על rgb(34,34,34)) שבוהקת על מפה כהה.
+   הכלל גורף בכוונה: הוא מכסה גם כל תווית עתידית. */
+/* --border-strong ולא --border: מעל אריחים הקצה החלש נבלע. הבועה
+   צריכה גבול שמפריד אותה מהמפה, לא גבול שמפריד אותה מכרטיס. */
+.map .leaflet-tooltip{background:var(--surface);color:var(--text);
+  border:1px solid var(--border-strong);border-radius:8px;box-shadow:var(--pin-shadow);
+  font-size:12px;font-weight:600;padding:4px 9px;white-space:nowrap}
+/* החץ הוא משולש מלא, לא מסגרת — הוא חייב את צבע המילוי של הבועה,
+   אחרת הוא נקרא כמשולש כהה מנותק. ארבעת הכיוונים, כי Leaflet בוחרת
+   כיוון לפי מקום פנוי ולא לפי מה שביקשנו. */
+.map .leaflet-tooltip-top::before{border-top-color:var(--surface)}
+.map .leaflet-tooltip-bottom::before{border-bottom-color:var(--surface)}
+.map .leaflet-tooltip-left::before{border-left-color:var(--surface)}
+.map .leaflet-tooltip-right::before{border-right-color:var(--surface)}
+/* מרכז העיר הוא נקודת ייחוס, לא יעד. אסור לו להתחרות בסמני המשמרות. */
+.map.leaflet-container .leaflet-tooltip.tip-muted{color:var(--muted)}
+
+.map .leaflet-popup-content-wrapper{background:var(--surface);color:var(--text);
+  border:1px solid var(--border-strong);border-radius:var(--r-s);box-shadow:var(--shadow-lift)}
+.map .leaflet-popup-content{margin:13px 15px;font-size:14px;line-height:1.5}
+.map .leaflet-popup-tip{background:var(--surface);border:1px solid var(--border-strong);box-shadow:none}
+/* Leaflet עצמה משתמשת ב-.leaflet-container a.leaflet-popup-close-button
+   (0,2,1). צריך סגוליות גבוהה ממנה, לא שווה לה. */
+.map.leaflet-container a.leaflet-popup-close-button{color:var(--muted);width:28px;height:28px;
+  padding:6px 7px 0 0;font-weight:700}
+.map.leaflet-container a.leaflet-popup-close-button:hover{color:var(--text);background:none}
+.pop-name{font-weight:800;font-size:15.5px;letter-spacing:-.3px}
+.pop-sub{color:var(--muted);font-size:13px;margin-top:2px}
+.pop-count{font-weight:700;font-size:12.5px;color:var(--muted);margin-top:11px}
+.pop-list{max-height:198px;overflow:auto}
+.pop-row{display:flex;gap:10px;align-items:center;justify-content:space-between;
+  padding:9px 0;border-top:1px solid var(--border)}
+.pop-role{font-weight:700;font-size:14px}
+.pop-when{color:var(--muted);font-size:12.5px}
+.pop-row .btn{width:auto;margin:0;padding:8px 13px;font-size:13.5px;flex:none}
+
+.map .leaflet-control-zoom a{background:var(--surface);color:var(--text);border-color:var(--border)}
+.map .leaflet-control-zoom a:hover{background:var(--surface-2);color:var(--text)}
+/* ה-attribution של OSM הוא תנאי רישוי. מותר להחליש, אסור להסתיר.
+   ל-Leaflet יש כאן .leaflet-container .leaflet-control-attribution — גם
+   (0,2,0). .map ו-.leaflet-container הם אותו אלמנט, ולכן תחילית עם רווח
+   נותנת תיקו בלבד, וגיליון Leaflet נטען אחרינו ומנצח. חיבור בלי רווח
+   מעלה ל-(0,3,0). נמדד: עם רווח rgba(255,255,255,.8), בלי רווח כהה. */
+.map.leaflet-container .leaflet-control-attribution{
+  background:color-mix(in srgb,var(--surface) 84%,transparent);
+  color:var(--muted);font-size:10.5px}
+.map.leaflet-container .leaflet-control-attribution a{color:var(--muted)}
+
+/* ==========================================================================
+   N2 — חלופה ג · הבלוק של המעצב. מחליף את הבלוק הזמני של המפתח.
+   אין כאן hex מקומי ואין שם מחלקה שאינו ב-§2.
+   הגיאומטריה זהה למוקאפ M19 שאושר; מה שנוסף כאן הוא .c-act
+   ושתי התאמות שבלעדיהן הפריסה נשברת — מפורטות ב-DESIGN-NOTE-N2.md.
+   ========================================================================== */
+.list-c{margin-top:14px}
+.c-head{position:sticky;top:0;z-index:5;background:var(--bg);
+  display:flex;align-items:baseline;gap:9px;padding:14px 2px 7px}
+.c-head .h{font-size:14.5px;font-weight:900;letter-spacing:-.4px}
+.c-head .n{font-size:12px;color:var(--muted);font-weight:600}
+.c-head .line{flex:1;height:1px;background:var(--border)}
+
+.c-item{display:grid;grid-template-columns:58px minmax(0,1fr) auto;gap:0 12px;
+  align-items:center;padding:10px 12px;margin-top:7px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-s)}
+.c-item.urgent{border-inline-start:3px solid var(--brand);padding-inline-start:9px}
+.c-item.dim{opacity:.55}
+.c-item.dim.urgent{border-inline-start-color:var(--border-strong)}
+
+.c-time{font-size:15.5px;font-weight:800;letter-spacing:-.5px;line-height:1.2;display:block}
+.c-len{font-size:11px;color:var(--muted);display:block}
+.c-mid{min-width:0}
+.c-role{font-size:14.5px;font-weight:700;letter-spacing:-.3px;line-height:1.35;
+  display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.c-role .icon-bolt{color:var(--green)}
+.c-sub{font-size:12.5px;color:var(--muted);line-height:1.4;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-sub .vr{color:var(--green);font-weight:700}
+/* gap דו-ערכי: 11px בין דגלים, 3px בין שורות כשהקו נשבר. אין מפרידי
+   נקודה — כשהקו נשבר המפריד נוחת בתחילת השורה ונראה כמו תקלה. */
+.c-flags{font-size:11.5px;color:var(--muted);display:flex;gap:3px 11px;flex-wrap:wrap;
+  align-items:center;margin-top:1px;line-height:1.45}
+.c-flags .hot{color:var(--amber);font-weight:700}
+.c-flags .need{color:var(--accent-2);font-weight:700}
+
+.c-end{text-align:end;flex:none;max-inline-size:112px}
+.c-total{font-size:17px;font-weight:800;color:var(--navy);letter-spacing:-.6px;
+  white-space:nowrap;display:block}
+/* הסכום הוא הגיבור; סימן המטבע קטן ושקט לידו, כמו בתפריטים מודפסים */
+.c-total .cur{font-size:.6em;font-weight:700;color:var(--muted);margin-inline-end:1px}
+.c-rate{font-size:11px;color:var(--muted);white-space:nowrap;display:block}
+
+/* ---------- .c-act ----------
+   הכפתור נושא גם .btn, ולכן כאן יש רק את ההפרש: .btn נותן רוחב מלא,
+   margin-top:18px ופדינג של כפתור ראשי — שלושתם הורסים שורה צפופה.
+   מה ש-.btn כן נותן ונשמר בכוונה: הצבעים, טבעת המיקוד, ההתכווצות
+   בלחיצה וביטול הדגשת המגע. כפתור שמתנהג אחרת מכל כפתור אחר בקובץ
+   הוא בדיוק מה שגורם למוצר להרגיש מורכב משניים. */
+.c-act{inline-size:auto;margin:0;padding:0 14px;min-block-size:44px;
+  font-size:13.5px;border-radius:10px;box-shadow:none;white-space:nowrap}
+/* רוחב קבוע ולא auto: עם auto, שורה בלי כפתור מאבדת את הרצועה והסכום
+   שלה קופץ 164px ביחס לשורה עם כפתור — באותו דלי, זו ליד זו. נמדד. */
+/* 152px: המחרוזת הארוכה מבין השתיים ("תפיסת המשמרת" עם האייקון)
+   נמדדה 143px. מחרוזת ארוכה מזו תדרוש מספר חדש כאן — תגיד לי. */
+.c-item.has-act{grid-template-columns:58px minmax(0,1fr) auto 152px}
+.c-item.has-act .c-act{inline-size:100%}
+
+/* ---------- 420px ומטה ----------
+   ארבע עמודות בשורה אחת לא עובדות: ב-375px העמודה האמצעית יורדת
+   מ-192px ל-28px ושלוש שורות נחתכות. הכפתור יורד לשורה שנייה
+   ורוחבי העמודות נשמרים. הסף 420 ולא 380: גם ב-414px ארבע עמודות משאירות לאמצע 68px
+   ושלוש שורות נחתכות. במבנה שכאן — 231px ואפס חיתוכים. */
+@media (max-width:420px){
+  .c-item{grid-template-columns:52px minmax(0,1fr) auto;padding:9px 11px}
+  .c-time{font-size:14.5px}
+  .c-total{font-size:16px}
+  .c-item.has-act{grid-template-columns:52px minmax(0,1fr) auto}
+  .c-item.has-act>:first-child{grid-row:1/3}
+  .c-item.has-act .c-act{grid-column:2/4;grid-row:2;justify-self:start;
+    inline-size:auto;min-inline-size:152px;min-block-size:40px;margin-top:8px}
+}
+/* מתג רשימה/מפה */
+.seg{display:inline-flex;gap:4px;flex:none;padding:3px;
+  background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-s)}
+.seg-b{border:0;background:none;border-radius:9px;padding:9px 15px;cursor:pointer;
+  font-weight:700;font-size:14px;letter-spacing:-.2px;color:var(--muted);
+  transition:background .15s var(--ease-soft),color .15s var(--ease-soft)}
+.seg-b:hover{color:var(--text)}
+.seg-b.on{background:var(--accent-solid);color:var(--on-accent)}
+.seg-b:focus-visible{box-shadow:var(--ring)}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition-duration:.01ms !important;animation-duration:.01ms !important}
+}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="list-c" id="board"></div>
+</div>
+<script>
+/* התבנית הועתקה מילה במילה מ-shiftRow ומ-claimBtn ב-app.html.
+   רק הנתונים והעוזרים הם של הרתמה. */
+const esc = t => String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pad2 = n => String(n).padStart(2,'0');
+const hhmm = d => pad2(d.getHours())+':'+pad2(d.getMinutes());
+const hoursBetween = (a,b) => Math.round((b-a)/36e5*10)/10;
+const T = {'ui.flag_until':'עד {0}','ui.adults_only':'18+','ui.unverified_biz':'עסק לא מאומת',
+           'ui.approx_location':'מיקום משוער','ui.bucket_today':'היום','ui.bucket_tomorrow':'מחר',
+           'ui.bucket_weekend':'סוף השבוע','ui.bucket_later':'בהמשך'};
+const ui = k => T[k] || k;
+const fill = (s,v) => s.replace('{0}', v);
+const plural = (k,n) => k==='ui.slots_left' ? n+' תקנים · נותרו '+n : n+' משמרות';
+const termLabel = (_,c) => c;
+const S = { verified:{} };
+const claimBtn = (s, cls='') =>
+  `<button class="btn${cls ? ' ' + cls : ''}" data-claim="${s.id}">${
+    s.instant ? '<span class="icon icon-bolt"></span> תפיסת המשמרת' : 'הגשת מועמדות'}</button>`;
+
+function shiftRow(s, withAct){
+  const start = new Date(s.starts_at), end = new Date(s.ends_at);
+  const hours = hoursBetween(start, end);
+  const free  = Math.max(s.slots - s.filled, 0);
+  const ok    = S.verified[s.business_id];
+  const f = [];
+  f.push(`<span class="num">${esc(fill(ui('ui.flag_until'), hhmm(end)))}</span>`);
+  if(s.urgent)      f.push('<span class="hot">דחוף</span>');
+  if(s.adults_only) f.push(`<span class="hot">${esc(ui('ui.adults_only'))}</span>`);
+  if(s.slots > 1)   f.push(`<span class="need num">${esc(plural('ui.slots_left', free))}</span>`);
+  if(s.transport)   f.push('<span><span class="icon icon-van"></span> הסעות</span>');
+  if(!ok)           f.push(`<span>${esc(ui('ui.unverified_biz'))}</span>`);
+  if(!s.located_at) f.push(`<span>${esc(ui('ui.approx_location'))}</span>`);
+
+  return `<div class="c-item ${s.urgent?'urgent':''} ${withAct?'has-act':''}">
+    <div>
+      <span class="c-time num">${hhmm(start)}</span>
+      <span class="c-len num">${hours} ש׳</span>
+    </div>
+    <div class="c-mid">
+      <div class="c-role">${s.instant?'<span class="icon icon-bolt"></span>':''}${esc(termLabel('role', s.role_code))}</div>
+      <div class="c-sub">${esc(s.biz_name)}${ok?' <span class="vr">✓</span>':''} · ${esc(s.city)}</div>
+      <div class="c-flags">${f.join('')}</div>
+    </div>
+    <div class="c-end">
+      <span class="c-total num"><span class="cur">₪</span>${Math.round(hours * s.rate)}</span>
+      <span class="c-rate num">₪${esc(Number(s.rate))} לשעה</span>
+    </div>
+    ${withAct ? claimBtn(s, 'c-act') : ''}
+  </div>`;
+}
+
+const D = (d,h,m)=>{const x=new Date();x.setDate(x.getDate()+d);x.setHours(h,m,0,0);return x.toISOString()};
+const SH = [
+ {id:1,role_code:'מלצר',biz_name:'ביסטרו נוטר',city:'נתניה',business_id:'a',rate:57,slots:1,filled:0,urgent:1,instant:0,adults_only:0,transport:1,located_at:1,starts_at:D(0,18,0),ends_at:D(0,23,0),bucket:0},
+ {id:2,role_code:'ברמן',biz_name:'ביסטרו בנמל',city:'חיפה',business_id:'a',rate:62,slots:1,filled:0,urgent:0,instant:1,adults_only:1,transport:0,located_at:1,starts_at:D(0,20,0),ends_at:D(1,2,0),bucket:0},
+ {id:3,role_code:'עובד שטיפה',biz_name:'מטבח הדרום',city:'באר שבע',business_id:'z',rate:45,slots:1,filled:0,urgent:0,instant:0,adults_only:0,transport:0,located_at:0,starts_at:D(0,17,30),ends_at:D(0,23,30),bucket:0},
+ {id:4,role_code:'מלצר',biz_name:'קפה שדרות',city:'תל אביב-יפו',business_id:'a',rate:54,slots:1,filled:0,urgent:0,instant:0,adults_only:0,transport:0,located_at:1,starts_at:D(0,19,0),ends_at:D(1,1,0),bucket:0,applied:1},
+ {id:5,role_code:'איש פלור (אחמ״ש / מנהל אירועים)',biz_name:'קייטרינג הגן',city:'ראשון לציון',business_id:'a',rate:68,slots:3,filled:1,urgent:0,instant:0,adults_only:0,transport:1,located_at:1,starts_at:D(1,16,0),ends_at:D(2,0,0),bucket:1},
+ {id:6,role_code:'טבח',biz_name:'מלון החוף',city:'נתניה',business_id:'a',rate:52,slots:2,filled:0,urgent:1,instant:0,adults_only:0,transport:1,located_at:1,starts_at:D(1,7,0),ends_at:D(1,15,0),bucket:1},
+ {id:7,role_code:'ברמן',biz_name:'בר תחתית',city:'תל אביב-יפו',business_id:'z',rate:60,slots:1,filled:0,urgent:0,instant:1,adults_only:1,transport:0,located_at:0,starts_at:D(1,22,0),ends_at:D(2,4,0),bucket:1},
+ {id:8,role_code:'מלצר',biz_name:'ביסטרו נוטר',city:'נתניה',business_id:'a',rate:48,slots:1,filled:0,urgent:0,instant:0,adults_only:0,transport:0,located_at:1,starts_at:D(1,11,0),ends_at:D(1,17,0),bucket:1},
+ {id:9,role_code:'איש פלור (אחמ״ש / מנהל אירועים)',biz_name:'אולמי הנמל',city:'חיפה',business_id:'a',rate:66,slots:4,filled:2,urgent:0,instant:0,adults_only:1,transport:1,located_at:1,starts_at:D(5,18,0),ends_at:D(6,2,0),bucket:2},
+ {id:10,role_code:'טבח',biz_name:'קפה שדרות',city:'תל אביב-יפו',business_id:'a',rate:58,slots:1,filled:0,urgent:0,instant:0,adults_only:0,transport:0,located_at:1,starts_at:D(5,9,0),ends_at:D(5,16,0),bucket:2},
+ {id:11,role_code:'ברמן',biz_name:'מטבח הדרום',city:'באר שבע',business_id:'z',rate:55,slots:2,filled:1,urgent:0,instant:1,adults_only:1,transport:1,located_at:1,starts_at:D(6,20,30),ends_at:D(7,3,0),bucket:2},
+ {id:12,role_code:'עובד שטיפה',biz_name:'מלון החוף',city:'נתניה',business_id:'a',rate:42,slots:1,filled:0,urgent:0,instant:0,adults_only:0,transport:1,located_at:1,starts_at:D(9,12,0),ends_at:D(9,20,0),bucket:3}
+];
+S.verified = {a:true, z:false};
+const BUCKETS = ['ui.bucket_today','ui.bucket_tomorrow','ui.bucket_weekend','ui.bucket_later'];
+let out='';
+[0,1,2,3].forEach(i=>{
+  const list = SH.filter(s=>s.bucket===i);
+  if(!list.length) return;
+  out += `<div class="c-head"><span class="h">${esc(ui(BUCKETS[i]))}</span>
+    <span class="n num">${esc(plural('ui.bucket_count', list.length))}</span>
+    <span class="line"></span></div>`
+    + list.map(s => shiftRow(s, i === 0 && !s.applied)).join('');
+});
+document.getElementById('board').innerHTML = out;
+</script>
+</body>
+</html>

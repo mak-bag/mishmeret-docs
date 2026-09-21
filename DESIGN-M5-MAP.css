@@ -1,0 +1,333 @@
+/* ==========================================================================
+   BEGIN — סבב M / M5 · השכבה הוויזואלית של המפה
+   מאת: Designer · 20 בספטמבר 2026
+   להדביק ב-app.html בסוף בלוק ה-<style>, ואת שני הטוקנים שבראש הקובץ הזה
+   לשלושת בלוקי הטוקנים. CSS בלבד — אין כאן שורת JS אחת.
+   CSS של Leaflet מגיע מ-CDN וחייב להיטען לפני הבלוק הזה.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   0. טוקנים חדשים — שניים בלבד, ושניהם חייבים להיכנס בשלושה מקומות:
+      :root  ·  @media (prefers-color-scheme:dark)  ·  :root[data-theme="dark"]
+
+   ב-:root
+     --tiles-filter:none;
+     --pin-shadow:0 2px 6px rgba(13,27,51,.32);
+
+   בשתי חסימות הכהה
+     --tiles-filter:invert(1) hue-rotate(182deg) brightness(.86) contrast(1) saturate(.78);
+     --pin-shadow:0 2px 10px rgba(0,0,0,.62);
+
+   הערכים של הפילטר כוונו בעיניים על נתניה, חיפה ומרכז תל אביב, בשלוש
+   איטרציות. הנימוק לכל מספר מופיע בסעיף 2.
+   -------------------------------------------------------------------------- */
+
+
+/* --------------------------------------------------------------------------
+   1. מיכל המפה
+   -------------------------------------------------------------------------- */
+
+/* isolation:isolate אינו קישוט. Leaflet מציבה פאנלים פנימיים עד z-index:700,
+   והכותרת הדביקה שלנו היא 30 והניווט התחתון 40. בלי הקשר ערימה משלו,
+   המפה מציירת את עצמה מעל שניהם בזמן גלילה. */
+.map{position:relative;isolation:isolate;
+  height:min(62vh,560px);min-height:320px;margin-top:14px;
+  border:1px solid var(--border);border-radius:var(--r);overflow:hidden;
+  background:var(--surface-2)}
+
+/* מפת בחירת הסיכה יושבת בתוך טופס ולכן נמוכה */
+.map-pick{height:280px;min-height:280px}
+
+/* הודעה במרכז המפה: טעינה, מפה ריקה, "בחרו עיר קודם".
+   יושבת מעל האריחים ומתחת לבקרות. */
+.map .map-msg{position:absolute;inset:0;z-index:2;
+  display:grid;place-items:center;padding:24px;text-align:center;
+  color:var(--muted);font-size:14px;line-height:1.7}
+
+/* שלד טעינה — אותו גובה בדיוק, ולכן אין קפיצת פריסה כשהאריחים נכנסים */
+.map.is-loading::after{content:"";position:absolute;inset:0;z-index:1;
+  background:linear-gradient(100deg,
+    transparent 32%,
+    color-mix(in srgb,var(--surface) 55%,transparent) 50%,
+    transparent 68%);
+  background-size:220% 100%;
+  animation:mapShimmer 1.5s var(--ease-soft) infinite}
+@keyframes mapShimmer{from{background-position:180% 0}to{background-position:-80% 0}}
+
+/* הערה שיושבת מתחת למפה (ui.map_radius_note) */
+.map-note{font-size:12.5px;color:var(--muted);line-height:1.7;margin-top:10px}
+
+
+/* --------------------------------------------------------------------------
+   2. אריחי OSM במצב כהה
+   -------------------------------------------------------------------------- */
+
+/* הפילטר מוחל על פאנל האריחים בלבד. הסמנים, העיגולים והפופאפים יושבים
+   בפאנלים אחרים (overlay/marker/popup) ולכן נשארים בצבעי המותג.
+   אל תעלה את הפילטר ל-.leaflet-container — שם הוא יהפוך גם אותם. */
+.leaflet-tile-pane{filter:var(--tiles-filter)}
+
+/* למה דווקא הערכים האלה, אחרי שלוש איטרציות מול נתניה, מפרץ חיפה ומרכז ת"א:
+
+   invert(1) hue-rotate(182deg)
+     ההיפוך הופך את הים לחום ואת היבשה לכחלחל; הסיבוב מחזיר אותם.
+     182 ולא 180 — שתי מעלות מקררות את האפור העירוני שנוטה לחום.
+
+   brightness(.86)
+     היפוך מלא נותן אפור בהיר שמתחרה בסמנים. המפה חייבת להיות הרקע.
+
+   contrast(1)
+     נוסה גם .86. שם רשת הרחובות של ת"א נמרחה ושמות הרחובות נבלעו.
+     ניגודיות מלאה שומרת על היררכיית הכבישים של OSM.
+
+   saturate(.78)
+     זה המספר הקריטי. ב-.62 הים יצא אפור-ירקרק ונראה כמו יבשה — בדיוק
+     הכישלון שהבריף מזהיר ממנו. ב-.78 הים טורקיז חד-משמעי, ומפרץ חיפה
+     נבדל מהנמל שלידו, בלי שכבישי המהירות יהפכו למגנטה צועקת. */
+
+/* רקע ה-container עצמו אינו אריח ולכן אינו עובר את הפילטר */
+.leaflet-container{background:var(--surface-2);font-family:inherit}
+
+
+/* --------------------------------------------------------------------------
+   3. סמן משמרת — .pin-shift
+   -------------------------------------------------------------------------- */
+
+/* Leaflet כותבת transform:translate3d() על אלמנט הסמן עצמו כדי למקם אותו.
+   כל transform שנכתוב עליו יעיף את הסמן מהנקודה שלו. לכן האלמנט החיצוני
+   הוא נקודת עיגון בגודל אפס, וכל החזותי יושב על .pin-body שבתוכו.
+
+   מיכל ברוחב 0 עם justify-content:center — הילד גולש שווה לשני הצדדים
+   ולכן מתמרכז בלי left/right פיזיים, וזה נכון גם ב-RTL. */
+.pin-shift,.pin-city,.pin-pick{
+  display:flex;justify-content:center;align-items:flex-end;
+  width:0;height:0;overflow:visible;background:none;border:0}
+
+/* margin-bottom:5px אינו שרירותי. align-items:flex-end מציב את קצה שולי
+   התחתון על y=0, הזנב יוצא 6px מתחת לגוף ומוסט ‎-1px, ולכן קצה הזנב נוחת
+   בדיוק על הנקודה. כל שינוי בעובי הזנב מחייב לחשב את זה מחדש. */
+.pin-shift .pin-body{flex:none;position:relative;margin-bottom:5px;
+  display:inline-flex;align-items:center;justify-content:center;
+  box-sizing:border-box;min-width:46px;height:32px;padding:0 11px;
+  background:var(--accent-solid);color:var(--on-accent);
+  font-size:13px;font-weight:800;letter-spacing:-.3px;white-space:nowrap;
+  border:2px solid var(--surface);border-radius:999px;
+  box-shadow:var(--pin-shadow);
+  transition:transform .16s var(--ease),box-shadow .16s var(--ease)}
+
+/* סימן המטבע שקט יותר מהסכום, כמו בכרטיס */
+.pin-shift .cur{font-size:.68em;font-weight:700;opacity:.8;
+  margin-inline-end:1px;vertical-align:.06em}
+
+/* הזנב. שתי שכבות: החיצונית בצבע המסגרת, הפנימית בצבע המילוי,
+   כך שקו המתאר ממשיך ברציפות עד הקצה. inset-inline+margin-inline:auto
+   ממרכז בלי מאפיין פיזי. */
+.pin-shift .pin-body::after,
+.pin-shift .pin-body::before{content:"";position:absolute;top:100%;
+  inset-inline:0;margin-inline:auto;width:0;height:0;
+  border:6px solid transparent}
+.pin-shift .pin-body::after{border-top-color:var(--surface);margin-top:-1px}
+.pin-shift .pin-body::before{border-width:4px;border-top-color:var(--accent-solid);
+  margin-top:-2px;z-index:1}
+
+/* כמה משמרות באותו עסק — משקל חזותי מעט גדול יותר */
+.pin-shift.multi .pin-body{height:35px;min-width:35px;font-size:14.5px;padding:0 12px}
+.pin-shift.multi .pin-body::after{border-width:7px}
+.pin-shift.multi .pin-body::before{border-width:5px}
+
+/* מיקום משוער (ui.approx_location). קו מתאר מקווקו במקום מילוי מלא.
+   זו אינה החלטה קוסמטית: סיכה שיושבת במרכז העיר ונראית כמו סיכה מדויקת
+   היא הבטחה שקרית לעובד שנוסע. */
+.pin-shift.approx .pin-body{
+  background:var(--surface);color:var(--accent);
+  border:2px dashed var(--accent);box-shadow:none}
+.pin-shift.approx .pin-body::before{border-top-color:var(--surface)}
+.pin-shift.approx .pin-body::after{border-top-color:var(--accent);opacity:.55}
+
+.pin-shift .pin-body:hover{transform:translateY(-2px)}
+.pin-shift .pin-body:active{transform:scale(.95)}
+
+/* מצב "נבחר" — כשהפופאפ של הסמן פתוח. ה-JS מוסיף/מסיר את המחלקה
+   ב-popupopen/popupclose; ראה בלוק החפיפה. */
+.pin-shift.is-open .pin-body{transform:translateY(-3px) scale(1.08);
+  box-shadow:var(--shadow-lift)}
+.pin-shift.is-open{z-index:1000}
+
+
+/* --------------------------------------------------------------------------
+   4. סמן העיר של העובד — .pin-city
+   -------------------------------------------------------------------------- */
+
+/* הפניה, לא יעד. עיגול פתוח בגוון מושתק, בלי מילוי מלא. */
+.pin-city{flex-direction:column;align-items:center;gap:5px}
+.pin-city .pin-dot{flex:none;width:15px;height:15px;margin-top:-7.5px;
+  border-radius:50%;background:var(--surface);
+  border:2.5px solid var(--muted);box-shadow:var(--pin-shadow)}
+.pin-city .pin-label{flex:none;white-space:nowrap;
+  font-size:11px;font-weight:700;color:var(--muted);
+  background:color-mix(in srgb,var(--surface) 88%,transparent);
+  border:1px solid var(--border);border-radius:7px;padding:2px 7px}
+
+
+/* --------------------------------------------------------------------------
+   5. עיגול הרדיוס — .radius-ring
+   -------------------------------------------------------------------------- */
+
+/* L.circle מצייר <path> ב-.leaflet-overlay-pane. Leaflet כותבת את הצבעים
+   כמאפייני מצגת (presentation attributes), ו-CSS גובר עליהם —
+   ולכן אל תעביר color/fillColor באפשרויות, רק className. */
+.radius-ring{fill:var(--accent);fill-opacity:.07;
+  stroke:var(--accent);stroke-opacity:.85;stroke-width:2;stroke-dasharray:7 6}
+
+/* גבול ה-50 ק״מ במפת המעסיק. אותו סגנון בגוון --muted, בלי מילוי:
+   הוא אומר "הגבול", לא "הטווח שלך". הוא מציג ולא אוכף. */
+.radius-ring.bound{fill:none;stroke:var(--muted);stroke-opacity:.7;stroke-dasharray:5 7}
+
+
+/* --------------------------------------------------------------------------
+   6. סיכת המעסיק — .pin-pick
+   -------------------------------------------------------------------------- */
+
+/* טיפה קלאסית: ריבוע עם שלוש פינות מעוגלות, מסובב 45 מעלות,
+   כך שהפינה החדה מצביעה מטה אל הנקודה. */
+/* ריבוע 26px מסובב 45° — הפינה החדה יוצאת 5.4px מתחת לתיבת האלמנט
+   (26·√2/2 פחות 13). margin-bottom:5px מנחית אותה על הנקודה. */
+.pin-pick .pin-body{flex:none;position:relative;
+  width:26px;height:26px;margin-bottom:5px;
+  border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+  background:var(--accent-solid);border:2px solid var(--surface);
+  box-shadow:var(--pin-shadow);
+  transition:transform .18s var(--ease),box-shadow .18s var(--ease),
+             background .18s var(--ease-soft),border-color .18s var(--ease-soft)}
+
+/* לא נקבע: מקווקוות, עמומה, ומרחפת גבוה יותר — ובלי צל.
+   דבר שלא הונח על הקרקע לא מטיל צל, וזה מה שאומר "עוד לא נבחר". */
+.pin-pick.unset .pin-body{
+  background:color-mix(in srgb,var(--surface) 70%,transparent);
+  border:2.5px dashed var(--muted);box-shadow:none;
+  margin-bottom:11px;opacity:.9}
+
+/* נקבע: מלאה, צבע מותג, עם צל */
+.pin-pick.set .pin-body{background:var(--accent-solid);
+  border:2px solid var(--surface);box-shadow:var(--pin-shadow);opacity:1}
+
+/* גרירה — זו הפעולה שהמסך קיים בשבילה, ולכן היא מקבלת משוב */
+.pin-pick.is-dragging .pin-body{
+  transform:rotate(-45deg) scale(1.18);
+  box-shadow:0 10px 18px -6px rgba(13,27,51,.5)}
+
+.pin-pick .pin-body:hover{transform:rotate(-45deg) scale(1.08)}
+
+
+/* --------------------------------------------------------------------------
+   7. פופאפ
+   -------------------------------------------------------------------------- */
+
+.leaflet-popup-content-wrapper{
+  background:var(--surface);color:var(--text);
+  border:1px solid var(--border);border-radius:var(--r-s);
+  box-shadow:var(--shadow-lift);padding:0}
+
+/* Leaflet כותבת width inline על אלמנט התוכן לפי המדידה שלה. ברוחב טלפון
+   היא מייצרת פופאפ של ~292px בתוך מפה של 343px, והוא גולש 30px מעבר לקצה
+   ונחתך ב-overflow:hidden של .map — נמדד, לא הונח.
+   ל-max-width יש עדיפות על width, ולכן התקרה הזו חוסמת את הגלישה בלי
+   !important. ‎96px = שוליי ‎.wrap משני הצדדים ועוד מרווח ל-autoPan. */
+.leaflet-popup-content{margin:0;padding:14px 15px;
+  max-width:calc(100vw - 96px);
+  font-size:14px;line-height:1.55;
+  max-height:290px;overflow-y:auto;overscroll-behavior:contain}
+
+/* כתובת ארוכה בלי רווחים לא תדחוף את הפופאפ */
+.map-pop .pop-sub,.map-pop .pop-role,.map-pop .pop-when{overflow-wrap:anywhere}
+
+.leaflet-popup-tip{background:var(--surface);
+  border-inline-start:1px solid var(--border);
+  border-block-end:1px solid var(--border);
+  box-shadow:none}
+
+/* כפתור הסגירה. Leaflet מקבעת אותו ב-right:0 פיזי; מאפסים ומציבים
+   מחדש בלוגי כדי שיישב בקצה הנכון גם ב-RTL. */
+.leaflet-container a.leaflet-popup-close-button{
+  left:auto;right:auto;inset-inline-end:5px;top:5px;
+  width:28px;height:28px;padding:0;
+  display:grid;place-items:center;
+  color:var(--muted);font-size:19px;font-weight:700;
+  border-radius:8px;
+  transition:background .15s var(--ease-soft),color .15s var(--ease-soft)}
+.leaflet-container a.leaflet-popup-close-button:hover{
+  background:var(--surface-2);color:var(--text)}
+
+/* תוכן הפופאפ */
+.map-pop .pop-title{font-size:15.5px;font-weight:800;letter-spacing:-.35px;
+  line-height:1.3;padding-inline-end:26px}
+.map-pop .pop-sub{font-size:12.5px;color:var(--muted);margin-top:3px}
+.map-pop .meta{margin-top:10px}
+.map-pop .pop-count{font-size:12.5px;font-weight:700;color:var(--muted);margin-top:12px}
+.map-pop .pop-list{display:flex;flex-direction:column;margin-top:4px}
+.map-pop .pop-shift{display:flex;align-items:center;justify-content:space-between;
+  gap:10px;padding:10px 0;border-top:1px solid var(--border)}
+.map-pop .pop-shift-info{min-width:0}
+.map-pop .pop-role{font-size:13.5px;font-weight:700;letter-spacing:-.2px}
+.map-pop .pop-when{font-size:12px;color:var(--muted);margin-top:1px}
+/* הכפתור שומר על המראה והמגע של .btn, רק ברוחב תוכן */
+.map-pop .pop-shift .btn{width:auto;margin:0;padding:9px 15px;font-size:13.5px;flex:none}
+
+
+/* --------------------------------------------------------------------------
+   8. מתג רשימה / מפה — .seg
+   -------------------------------------------------------------------------- */
+
+/* --accent-solid ולא --accent. במצב כהה --accent הוא תכלת, ולבן עליו
+   יורד ל-2.77:1. זה הבאג שחזר כאן פעמיים — בכפתורים ובגלולת הלשוניות.
+   הערך הנוכחי: 6.25:1 בבהיר, 5.17:1 בכהה. */
+.seg{display:inline-flex;flex:none;gap:4px;padding:3px;
+  background:var(--surface-2);border:1px solid var(--border);
+  border-radius:var(--r-s)}
+.seg button{appearance:none;-webkit-appearance:none;border:0;background:none;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  padding:7px 14px;border-radius:9px;
+  font-size:13.5px;font-weight:700;letter-spacing:-.2px;color:var(--muted);
+  transition:background .18s var(--ease-soft),color .18s var(--ease-soft)}
+.seg button:hover{color:var(--text)}
+.seg button.on{background:var(--accent-solid);color:var(--on-accent)}
+.seg button:focus-visible{box-shadow:var(--ring)}
+
+
+/* --------------------------------------------------------------------------
+   9. בקרות Leaflet
+   -------------------------------------------------------------------------- */
+
+/* Leaflet מגדירה .leaflet-touch .leaflet-bar a בסלקטיביות (0,3,1).
+   .leaflet-container .leaflet-bar a שווה לה ומנצח בסדר המקור,
+   ולכן אין כאן !important. */
+.leaflet-container .leaflet-bar{border:1px solid var(--border);
+  border-radius:var(--r-s);overflow:hidden;box-shadow:var(--shadow)}
+.leaflet-container .leaflet-bar a{
+  width:36px;height:36px;line-height:36px;
+  background:var(--surface);color:var(--text);
+  border-bottom:1px solid var(--border);
+  font-size:17px;font-weight:700;
+  transition:background .15s var(--ease-soft)}
+.leaflet-container .leaflet-bar a:last-child{border-bottom:0}
+.leaflet-container .leaflet-bar a:hover{background:var(--surface-2);color:var(--text)}
+.leaflet-container .leaflet-bar a.leaflet-disabled{
+  background:var(--surface-2);color:var(--muted);opacity:.6}
+
+/* ה-attribution של OSM הוא תנאי רישוי. מותר להקטין ולהחליש, אסור להסתיר.
+   נשאר קריא: --muted על --surface, 5.4:1 בבהיר ו-6.87:1 בכהה. */
+.leaflet-control-attribution{
+  background:color-mix(in srgb,var(--surface) 84%,transparent);
+  color:var(--muted);font-size:10.5px;line-height:1.6;
+  padding:2px 8px;border-start-start-radius:8px}
+.leaflet-control-attribution a{color:var(--muted);
+  text-decoration:underline;text-underline-offset:2px}
+.leaflet-control-attribution a:hover{color:var(--text)}
+
+.leaflet-control-scale-line{background:color-mix(in srgb,var(--surface) 84%,transparent);
+  border:1px solid var(--border);border-top:0;color:var(--muted);
+  font-size:10.5px;padding:1px 6px}
+
+/* ==========================================================================
+   END — סבב M / M5
+   ========================================================================== */

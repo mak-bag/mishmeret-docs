@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>M19 — שלוש חלופות להיררכיית לוח המשמרות</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   M19 · מוקאפ סטטי בלבד. לא app.html, לא מיועד להדבקה כמו שהוא.
+   הטוקנים הועתקו מילה במילה מ-app.html (שלושת המקומות), כדי שמה
+   שנראה כאן יהיה מה שייראה שם. אין כאן אף hex מקומי בתוך כלל CSS.
+   ============================================================ */
+:root{
+  --brand:#1257d6; --brand-ink:#0e46ab; --navy:#0f2a56;
+  --bg:#f5f7fa; --surface:#fff; --surface-2:#eef1f7;
+  --text:#0d1b33; --muted:#5b6b85;
+  --border:#e3e8f0; --border-strong:#ccd6e6;
+  --accent:var(--brand); --accent-2:var(--brand-ink); --accent-soft:#e8efff;
+  --accent-solid:#1257d6; --accent-solid-h:#0e46ab;
+  --field:#fcfdff;
+  --green:#0d7a55; --green-soft:#e3f4ed;
+  --amber:#8d5b06; --amber-soft:#fbeed9;
+  --danger:#b42318; --danger-soft:#fdecea;
+  --on-accent:#fff;
+  --ring:0 0 0 3px rgba(18,87,214,.20);
+  --shadow:0 1px 1px rgba(13,27,51,.04), 0 3px 8px -4px rgba(13,27,51,.12), 0 16px 32px -22px rgba(13,27,51,.45);
+  --shadow-lift:0 1px 1px rgba(13,27,51,.05), 0 6px 14px -6px rgba(13,27,51,.16), 0 26px 48px -26px rgba(13,27,51,.6);
+  --pin-shadow:0 2px 6px rgba(13,27,51,.32);
+  --ease:cubic-bezier(.22,1,.36,1);
+  --ease-soft:cubic-bezier(.4,0,.2,1);
+  --r:16px; --r-s:12px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --brand:#5c9bff; --brand-ink:#8ab8ff; --navy:#dbe7ff;
+    --bg:#0a1020; --surface:#111a2d; --surface-2:#1a2438;
+    --text:#e9eefb; --muted:#93a4c0;
+    --border:#27354f; --border-strong:#3a4c6b;
+    --accent-soft:#152a4f;
+    --accent-solid:#2563eb; --accent-solid-h:#1d4ed8;
+    --field:#0b1322;
+    --green:#4cbf94; --green-soft:#0f2b23;
+    --amber:#dfad5f; --amber-soft:#2d2414;
+    --danger:#fa8a82; --danger-soft:#3a1614;
+    --ring:0 0 0 3px rgba(92,155,255,.26);
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 14px 34px -20px rgba(0,0,0,.9);
+    --shadow-lift:0 1px 2px rgba(0,0,0,.5), 0 24px 46px -24px rgba(0,0,0,1);
+    --pin-shadow:0 2px 10px rgba(0,0,0,.62);
+  }
+}
+:root[data-theme="dark"]{
+  --brand:#5c9bff; --brand-ink:#8ab8ff; --navy:#dbe7ff;
+  --bg:#0a1020; --surface:#111a2d; --surface-2:#1a2438;
+  --text:#e9eefb; --muted:#93a4c0;
+  --border:#27354f; --border-strong:#3a4c6b;
+  --accent-soft:#152a4f;
+  --accent-solid:#2563eb; --accent-solid-h:#1d4ed8;
+  --field:#0b1322;
+  --green:#4cbf94; --green-soft:#0f2b23;
+  --amber:#dfad5f; --amber-soft:#2d2414;
+  --danger:#fa8a82; --danger-soft:#3a1614;
+  --ring:0 0 0 3px rgba(92,155,255,.26);
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 14px 34px -20px rgba(0,0,0,.9);
+  --shadow-lift:0 1px 2px rgba(0,0,0,.5), 0 24px 46px -24px rgba(0,0,0,1);
+  --pin-shadow:0 2px 10px rgba(0,0,0,.62);
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:"Heebo",-apple-system,"Segoe UI",Arial,sans-serif;
+  font-size:16px;line-height:1.55;-webkit-text-size-adjust:100%;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  font-feature-settings:"tnum" 1,"lnum" 1;
+}
+button{font-family:inherit}
+
+/* ---------- אייקונים: הסט מ-app.html, mask על currentColor ---------- */
+.icon{display:inline-block;width:1.05em;height:1.05em;flex:none;
+  vertical-align:-.16em;background-color:currentColor;
+  -webkit-mask:var(--gl) center/contain no-repeat;
+          mask:var(--gl) center/contain no-repeat}
+.icon-bolt{--gl:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000'%3E%3Cpath d='M13.2 2 4.6 13.1a.6.6 0 0 0 .5 1h4.6l-.9 7.9a.6.6 0 0 0 1.1.4l8.6-11.1a.6.6 0 0 0-.5-1h-4.6l.9-7.9a.6.6 0 0 0-1.1-.4z'/%3E%3C/svg%3E")}
+.icon-van{--gl:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.8 15.8V8.2a1.5 1.5 0 0 1 1.5-1.5h8.4v9.1M12.7 10.1h3.6l3 3.5v2.2M2.8 15.8h1.6M9.2 15.8h4M18.7 15.8h1.7'/%3E%3Ccircle cx='6.6' cy='16.4' r='2'/%3E%3Ccircle cx='16.3' cy='16.4' r='2'/%3E%3C/svg%3E")}
+.icon-pin{--gl:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21.3c4.2-4.3 6.3-7.7 6.3-10.4a6.3 6.3 0 1 0-12.6 0c0 2.7 2.1 6.1 6.3 10.4z'/%3E%3Ccircle cx='12' cy='10.6' r='2.4'/%3E%3C/svg%3E")}
+.icon-nav{--gl:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000'%3E%3Cpath d='M20.8 3.2 3.6 10.6a.5.5 0 0 0 .1 1l7 2.2 2.2 7a.5.5 0 0 0 1 .1z'/%3E%3C/svg%3E")}
+.icon-users{--gl:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 20.2v-1.9a3.8 3.8 0 0 0-3.8-3.8H6.5a3.8 3.8 0 0 0-3.8 3.8v1.9M21.3 20.2v-1.9a3.8 3.8 0 0 0-2.8-3.7M16.6 3.9a3.8 3.8 0 0 1 0 7.2'/%3E%3Ccircle cx='9.4' cy='7.4' r='3.7'/%3E%3C/svg%3E")}
+.icon-clock{--gl:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.6'/%3E%3Cpath d='M12 7v5.2l3.4 2'/%3E%3C/svg%3E")}
+
+/* ============================================================
+   כרום של המוקאפ. לא חלק מהמוצר — מסומן ויזואלית כזר בכוונה,
+   כדי שאיש לא יעתיק ממנו שורה בטעות.
+   ============================================================ */
+.mk-top{position:sticky;top:0;z-index:50;background:var(--surface);
+  border-block-end:1px solid var(--border);padding:10px 16px;
+  display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.mk-top h1{font-size:15px;margin:0;font-weight:800;letter-spacing:-.4px}
+.mk-top .mk-note{font-size:12.5px;color:var(--muted);margin-inline-end:auto}
+.mk-btn{background:var(--surface-2);border:1px solid var(--border);color:var(--text);
+  border-radius:999px;padding:6px 13px;font-size:13px;font-weight:700;cursor:pointer;
+  transition:border-color .16s var(--ease-soft),background .16s var(--ease-soft)}
+.mk-btn:hover{border-color:var(--border-strong)}
+.mk-btn[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent-2);
+  border-color:color-mix(in srgb,var(--brand) 26%,transparent)}
+.mk-sec{max-width:1180px;margin:0 auto;padding:30px 16px 8px}
+.mk-sec h2{font-size:20px;margin:0 0 4px;letter-spacing:-.6px;font-weight:900}
+.mk-claim{font-size:14px;color:var(--muted);margin:0 0 2px;line-height:1.7;max-width:62ch}
+.mk-claim b{color:var(--text);font-weight:700}
+.mk-frames{display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap;
+  max-width:1180px;margin:0 auto;padding:14px 16px 4px}
+.mk-frame{min-width:0}
+.mk-frame>figcaption{font-size:12px;color:var(--muted);font-weight:700;
+  margin-block-end:8px;letter-spacing:-.2px}
+/* מסגרת הטלפון היא בדיוק 375 רוחב תוכן, כמו viewport של iPhone.
+   שאילתות המכולה למטה מגיבות לרוחב הזה בדיוק כמו במסך אמיתי. */
+.mk-phone{width:375px;height:812px;overflow-y:auto;overflow-x:hidden;
+  background:var(--bg);border:1px solid var(--border-strong);border-radius:22px;
+  padding:12px 16px 40px;box-shadow:var(--shadow)}
+.mk-desk{width:720px;max-width:100%;background:var(--bg);
+  border:1px solid var(--border);border-radius:var(--r);padding:16px 16px 26px}
+.board{container-type:inline-size}
+.mk-rule{max-width:1180px;margin:34px auto 0;border:0;border-block-start:1px solid var(--border)}
+
+/* ============================================================
+   משותף לשלוש החלופות
+   ============================================================ */
+.num{font-variant-numeric:tabular-nums lining-nums}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  background:var(--accent-solid);color:var(--on-accent);border:0;border-radius:var(--r-s);
+  padding:10px 17px;font-size:14.5px;font-weight:800;cursor:pointer;letter-spacing:-.2px;
+  transition:background .16s var(--ease-soft)}
+.btn:hover{background:var(--accent-solid-h)}
+.btn.ghost{background:var(--surface);color:var(--accent);border:1px solid var(--border-strong)}
+.btn.ghost:hover{background:var(--surface-2)}
+.btn.sm{padding:7px 12px;font-size:13px;border-radius:10px}
+.state{font-size:13.5px;font-weight:700;color:var(--green)}
+.state.off{color:var(--muted)}
+/* ✓ בלבד — התו היחיד המותר */
+.vr{color:var(--green);font-weight:800}
+.tag{display:inline-flex;align-items:center;gap:5px;
+  font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;
+  background:var(--surface-2);color:var(--muted);
+  border:1px solid transparent;white-space:nowrap}
+.tag.today{background:var(--accent-soft);color:var(--accent-2);font-weight:700;
+  border-color:color-mix(in srgb,var(--brand) 20%,transparent)}
+.tag.hot{background:var(--amber-soft);color:var(--amber);font-weight:700;
+  border-color:color-mix(in srgb,var(--amber) 22%,transparent)}
+.tag.instant,.tag.done{background:var(--green-soft);color:var(--green);font-weight:700;
+  border-color:color-mix(in srgb,var(--green) 20%,transparent)}
+/* המרחק נקרא כקירוב: משקל קל, --muted, וה-≈ נשאר תמיד */
+.dist{color:var(--muted);font-weight:400}
+
+/* ============================================================
+   חלופה א — שורת רשימה
+   ההיררכיה: הזמן הוא עמודה קבועה בקצה המוביל. העין יורדת בטור
+   מספרים אחד ולא קופצת בין כרטיסים. מפרידים, לא קופסאות.
+   ============================================================ */
+.list-a{background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
+.row-a{display:grid;grid-template-columns:62px minmax(0,1fr) auto;
+  gap:0 12px;padding:9px 14px;align-items:center;
+  border-block-end:1px solid var(--border);position:relative;cursor:pointer;
+  transition:background .14s var(--ease-soft)}
+.row-a:last-child{border-block-end:0}
+.row-a:hover{background:var(--surface-2)}
+.row-a.urgent{border-inline-start:3px solid var(--brand);padding-inline-start:11px}
+.row-a.dim{opacity:.55}
+.row-a.dim.urgent{border-inline-start-color:var(--border-strong)}
+.a-when{text-align:start;line-height:1.25}
+.a-day{font-size:11.5px;color:var(--muted);font-weight:700;display:block}
+.a-time{font-size:16px;font-weight:800;letter-spacing:-.5px;display:block}
+.a-mid{min-width:0}
+.a-role{font-size:14.5px;font-weight:700;letter-spacing:-.3px;line-height:1.35;
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.a-role .icon-bolt{color:var(--green)}
+.a-sub{font-size:12.5px;color:var(--muted);line-height:1.4;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.a-flags{font-size:11.5px;color:var(--muted);display:flex;gap:3px 11px;
+  align-items:center;flex-wrap:wrap;margin-block-start:1px;line-height:1.45}
+.a-flags .hot,.c-flags .hot{color:var(--amber);font-weight:700}
+.a-flags .need,.c-flags .need{color:var(--accent-2);font-weight:700}
+.a-flags .ok,.c-flags .ok{color:var(--green);font-weight:700}
+.a-flags .off,.c-flags .off{color:var(--text);font-weight:700}
+/* עמודת הכסף לא מתרחבת בגלל שורת המצב: "המועמדות נשלחה" רחב מהסכום,
+   ובלי התקרה הוא היה גוזל רוחב מהעיר — ו"איפה" היא אחת מארבע השאלות. */
+.a-end{text-align:end;line-height:1.25;flex:none;max-inline-size:112px}
+.a-total{font-size:17px;font-weight:800;color:var(--navy);letter-spacing:-.6px;
+  white-space:nowrap;display:block}
+.a-rate{font-size:11px;color:var(--muted);white-space:nowrap;display:block}
+.a-state{font-size:11.5px;font-weight:700;display:block;margin-block-start:1px}
+.cur{font-size:.62em;font-weight:700;color:var(--muted);
+  margin-inline-end:1px;vertical-align:.09em;letter-spacing:0}
+/* בטלפון הדגלים יורדים לשורה משלהם ומאבדים את ההצמדה לסכום */
+@container (max-width:420px){
+  .row-a{grid-template-columns:54px minmax(0,1fr) auto;padding:10px 12px}
+  .a-time{font-size:15px}
+  .a-total{font-size:16px}
+  .a-sub{font-size:12px}
+}
+
+/* ============================================================
+   חלופה ב — כרטיס
+   ההיררכיה: אותה קופסה של היום, אבל הזמן עלה לכותרת, התפקיד ירד
+   לשורה שנייה, והסכום הכולל הוא המספר הגדול. פחות תגיות.
+   ============================================================ */
+.list-b{display:flex;flex-direction:column;gap:10px}
+.card-b{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:14px 16px;box-shadow:var(--shadow);cursor:pointer;
+  transition:box-shadow .18s var(--ease),border-color .18s,transform .18s var(--ease)}
+.card-b:hover{border-color:var(--border-strong);box-shadow:var(--shadow-lift);transform:translateY(-2px)}
+.card-b.urgent{border-inline-start:3px solid var(--brand);padding-inline-start:13px}
+.card-b.dim{opacity:.55;box-shadow:none}
+.card-b.dim.urgent{border-inline-start-color:var(--border-strong)}
+.b-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.b-head>div:first-child{min-width:0}
+.b-when{font-size:17.5px;font-weight:800;letter-spacing:-.5px;line-height:1.3;
+  display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.b-what{font-size:13.5px;color:var(--muted);margin-block-start:2px;line-height:1.45}
+.b-pay{text-align:end;flex:none}
+.b-total{font-size:22px;font-weight:800;color:var(--navy);white-space:nowrap;letter-spacing:-.7px;display:block}
+.b-rate{font-size:11.5px;color:var(--muted);display:block;margin-block-start:1px;white-space:nowrap}
+.b-meta{display:flex;flex-wrap:wrap;gap:6px;margin-block-start:10px}
+.b-where{font-size:13px;color:var(--muted);background:var(--surface-2);
+  border-radius:var(--r-s);padding:8px 12px;margin-block-start:10px;line-height:1.6;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.b-where .nav{color:var(--accent);font-weight:700;text-decoration:none;
+  margin-inline-start:auto;white-space:nowrap}
+.b-foot{display:flex;gap:8px;align-items:center;margin-block-start:12px;flex-wrap:wrap}
+@container (max-width:420px){
+  .b-when{font-size:16.5px}
+  .b-total{font-size:20px}
+  .b-where .nav{margin-inline-start:0}
+}
+
+/* ============================================================
+   חלופה ג — ציר זמן מקובץ
+   ההיררכיה יצאה מהכרטיס אל הדף: הזמן הוא הכותרת של הקבוצה, ולכן
+   השורה עצמה לא נושאת תאריך בכלל — רק שעה, מה, כמה, איפה.
+   ארבעה דליים לכל היותר: היום · מחר · סוף השבוע · בהמשך.
+   ============================================================ */
+.list-c{display:flex;flex-direction:column;gap:2px}
+.c-head{position:sticky;top:0;z-index:5;background:var(--bg);
+  display:flex;align-items:baseline;gap:8px;
+  padding:12px 2px 7px;margin-block-start:6px}
+.c-head .h{font-size:14.5px;font-weight:900;letter-spacing:-.4px}
+.c-head .n{font-size:12px;color:var(--muted);font-weight:600}
+.c-head .line{flex:1;height:1px;background:var(--border)}
+.c-item{display:grid;grid-template-columns:58px minmax(0,1fr) auto;gap:0 12px;
+  align-items:center;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-s);padding:8px 12px;margin-block-end:5px;cursor:pointer;
+  transition:border-color .16s var(--ease-soft),transform .16s var(--ease)}
+.c-item:hover{border-color:var(--border-strong);transform:translateX(-2px)}
+.c-item.urgent{border-inline-start:3px solid var(--brand);padding-inline-start:9px}
+.c-item.dim{opacity:.55}
+.c-item.dim.urgent{border-inline-start-color:var(--border-strong)}
+.c-time{font-size:15.5px;font-weight:800;letter-spacing:-.5px;line-height:1.2;display:block}
+.c-len{font-size:11px;color:var(--muted);display:block}
+.c-mid{min-width:0}
+.c-role{font-size:14.5px;font-weight:700;letter-spacing:-.3px;line-height:1.35;
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.c-role .icon-bolt{color:var(--green)}
+.c-sub{font-size:12.5px;color:var(--muted);line-height:1.4;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-flags{font-size:11.5px;color:var(--muted);display:flex;gap:3px 11px;flex-wrap:wrap;
+  align-items:center;margin-block-start:1px;line-height:1.45}
+.c-flags .hot{color:var(--amber);font-weight:700}
+.c-flags .need{color:var(--accent-2);font-weight:700}
+.c-end{text-align:end;flex:none;max-inline-size:112px}
+.c-total{font-size:17px;font-weight:800;color:var(--navy);letter-spacing:-.6px;
+  white-space:nowrap;display:block}
+.c-rate{font-size:11px;color:var(--muted);white-space:nowrap;display:block}
+.c-state{font-size:11.5px;font-weight:700;display:block;margin-block-start:1px}
+@container (max-width:420px){
+  .c-item{grid-template-columns:52px minmax(0,1fr) auto;padding:9px 11px}
+  .c-time{font-size:14.5px}
+  .c-total{font-size:16px}
+}
+</style>
+</head>
+<body>
+
+<div class="mk-top">
+  <h1>M19 · שלוש חלופות להיררכיית הלוח</h1>
+  <span class="mk-note">מוקאפ סטטי — לא <code>app.html</code></span>
+  <button class="mk-btn" id="mkTheme" aria-pressed="false">מצב כהה</button>
+  <button class="mk-btn" id="mkDense" aria-pressed="false">מבחן הצפיפות · 20</button>
+  <span class="mk-note num" id="mkCount"></span>
+</div>
+
+<section class="mk-sec">
+  <h2>א · שורת רשימה</h2>
+  <p class="mk-claim"><b>מנצחת:</b> הזמן יושב בעמודה קבועה, ולכן הסריקה היא
+    ירידה בטור אחד במקום קפיצה בין שתים-עשרה קופסאות. <span class="num">שמונה</span>
+    שורות במסך טלפון מול שלושה כרטיסים, ועשרים משמרות נגמרות אחרי
+    <span class="num">2.4</span> מסכים במקום <span class="num">5.4</span>.</p>
+  <p class="mk-claim"><b>מקריבה:</b> אין מקום לכפתור בשורה, ולכן ההגשה תמיד
+    דורשת פתיחה; והמצבים נדחסים לטקסט זעיר שמאבד את המשקל שלהם כשיש שלושה
+    באותה שורה.</p>
+</section>
+<div class="mk-frames">
+  <figure class="mk-frame" style="margin:0">
+    <figcaption>375px</figcaption>
+    <div class="mk-phone"><div class="board" id="a_phone"></div></div>
+  </figure>
+  <figure class="mk-frame" style="margin:0">
+    <figcaption>דסקטופ · 720px (רוחב <code>.wrap</code> האמיתי)</figcaption>
+    <div class="mk-desk"><div class="board" id="a_desk"></div></div>
+  </figure>
+</div>
+<hr class="mk-rule">
+
+<section class="mk-sec">
+  <h2>ב · כרטיס</h2>
+  <p class="mk-claim"><b>מנצחת:</b> כל משמרת עומדת בפני עצמה — זמן ככותרת,
+    סכום כולל כמספר הגדול, כתובת וכפתור באותה יחידה. זו גם החלופה היחידה
+    שבה אפשר להגיש בלי לפתוח כלום.</p>
+  <p class="mk-claim"><b>מקריבה:</b> צפיפות. שלושה כרטיסים למסך טלפון, ולכן
+    עשרים משמרות הן גלילה ארוכה שבה אי אפשר להשוות שתי משמרות זו לזו.</p>
+</section>
+<div class="mk-frames">
+  <figure class="mk-frame" style="margin:0">
+    <figcaption>375px</figcaption>
+    <div class="mk-phone"><div class="board" id="b_phone"></div></div>
+  </figure>
+  <figure class="mk-frame" style="margin:0">
+    <figcaption>דסקטופ · 720px</figcaption>
+    <div class="mk-desk"><div class="board" id="b_desk"></div></div>
+  </figure>
+</div>
+<hr class="mk-rule">
+
+<section class="mk-sec">
+  <h2>ג · ציר זמן מקובץ</h2>
+  <p class="mk-claim"><b>מנצחת:</b> הזמן יצא מהכרטיס אל מבנה הדף — "היום"
+    הוא כותרת ולא תגית, ולכן השורה משוחררת מהתאריך ועונה רק על מה · כמה ·
+    איפה. עשרים משמרות הופכות לארבע החלטות בגלילה של <span class="num">2.7</span>
+    מסכים, ו"אין כלום להערב" נראה בלי לקרוא שורה אחת.</p>
+  <p class="mk-claim"><b>מקריבה:</b> השורה מאבדת עצמאות — מחוץ לקבוצה שלה
+    אין בה תאריך, ולכן כל מיון שאינו לפי זמן שובר אותה; והכותרות גובות גובה
+    כשיש משמרת בודדת בדלי.</p>
+</section>
+<div class="mk-frames">
+  <figure class="mk-frame" style="margin:0">
+    <figcaption>375px</figcaption>
+    <div class="mk-phone"><div class="board" id="c_phone"></div></div>
+  </figure>
+  <figure class="mk-frame" style="margin:0">
+    <figcaption>דסקטופ · 720px</figcaption>
+    <div class="mk-desk"><div class="board" id="c_desk"></div></div>
+  </figure>
+</div>
+<hr class="mk-rule">
+<div class="mk-sec" style="padding-bottom:60px">
+  <p class="mk-claim">הנתונים זהים בשלוש החלופות ומגיעים ממקור אחד בקובץ,
+    כדי שההשוואה תהיה על ההיררכיה בלבד.</p>
+</div>
+
+<script type="module">
+/* ============================================================
+   מקור נתונים אחד לשלוש החלופות. השדות באותם שמות כמו
+   shifts_for_me ב-app.html, כדי שהמעבר לקוד אמיתי יהיה מיפוי ולא תרגום.
+   ============================================================ */
+const SHIFTS = [
+  { day:0, t:'18:00', end:'23:00', h:5,   role:'מלצר',
+    biz:'ביסטרו נוטר', city:'נתניה', addr:'אוסישקין 11', rate:57,
+    urgent:true,  instant:false, adults:false, transport:true,  verified:true,
+    slots:1, filled:0, approx:false, km:3,  status:null },
+  { day:0, t:'20:00', end:'02:00', h:6,   role:'ברמן',
+    biz:'ביסטרו בנמל', city:'חיפה', addr:'העצמאות 42', rate:62,
+    urgent:false, instant:true,  adults:true,  transport:false, verified:true,
+    slots:1, filled:0, approx:false, km:14, status:null },
+  { day:0, t:'17:30', end:'23:30', h:6,   role:'עובד שטיפה',
+    biz:'מטבח הדרום', city:'באר שבע', addr:'', rate:45,
+    urgent:false, instant:false, adults:false, transport:false, verified:false,
+    slots:1, filled:0, approx:true,  km:null, status:null },
+  { day:0, t:'19:00', end:'01:00', h:6,   role:'מלצר',
+    biz:'קפה שדרות', city:'תל אביב-יפו', addr:'רוטשילד 60', rate:54,
+    urgent:false, instant:false, adults:false, transport:false, verified:true,
+    slots:1, filled:0, approx:false, km:7,  status:'applied' },
+  { day:1, t:'16:00', end:'00:00', h:8,   role:'איש פלור (אחמ״ש / מנהל אירועים)',
+    biz:'קייטרינג הגן', city:'ראשון לציון', addr:'ז׳בוטינסקי 8', rate:68,
+    urgent:false, instant:false, adults:false, transport:true,  verified:true,
+    slots:3, filled:1, approx:false, km:22, status:null },
+  { day:1, t:'07:00', end:'15:00', h:8,   role:'טבח',
+    biz:'מלון החוף', city:'נתניה', addr:'הטיילת 3', rate:52,
+    urgent:true,  instant:false, adults:false, transport:true,  verified:true,
+    slots:2, filled:0, approx:false, km:5,  status:null },
+  { day:1, t:'22:00', end:'04:00', h:6,   role:'ברמן',
+    biz:'בר תחתית', city:'תל אביב-יפו', addr:'', rate:60,
+    urgent:false, instant:true,  adults:true,  transport:false, verified:false,
+    slots:1, filled:0, approx:true,  km:null, status:null },
+  { day:1, t:'11:00', end:'17:00', h:6,   role:'מלצר',
+    biz:'ביסטרו נוטר', city:'נתניה', addr:'אוסישקין 11', rate:48,
+    urgent:false, instant:false, adults:false, transport:false, verified:true,
+    slots:1, filled:0, approx:false, km:3,  status:'cancelled' },
+  { day:5, t:'18:00', end:'02:00', h:8,   role:'איש פלור (אחמ״ש / מנהל אירועים)',
+    biz:'אולמי הנמל', city:'חיפה', addr:'ההגנה 15', rate:66,
+    urgent:false, instant:false, adults:true,  transport:true,  verified:true,
+    slots:4, filled:2, approx:false, km:16, status:null },
+  { day:5, t:'09:00', end:'16:00', h:7,   role:'טבח',
+    biz:'קפה שדרות', city:'תל אביב-יפו', addr:'רוטשילד 60', rate:58,
+    urgent:false, instant:false, adults:false, transport:false, verified:true,
+    slots:1, filled:0, approx:false, km:7,  status:null },
+  { day:6, t:'20:30', end:'03:00', h:6.5, role:'ברמן',
+    biz:'מטבח הדרום', city:'באר שבע', addr:'רגר 90', rate:55,
+    urgent:false, instant:true,  adults:true,  transport:true,  verified:false,
+    slots:2, filled:1, approx:false, km:31, status:null },
+  { day:9, t:'12:00', end:'20:00', h:8,   role:'עובד שטיפה',
+    biz:'מלון החוף', city:'נתניה', addr:'הטיילת 3', rate:42,
+    urgent:false, instant:false, adults:false, transport:true,  verified:true,
+    slots:1, filled:0, approx:false, km:5,  status:null },
+];
+
+/* תוויות. כל מחרוזת חדשה מסומנת ברשימה בבלוק החפיפה כ"דורשת קוד ב-terms". */
+const DAYS = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+const dayLabel = d => d===0 ? 'היום' : d===1 ? 'מחר' : `יום ${DAYS[(new Date().getDay()+d)%7]}`;
+const bucket   = d => d===0 ? 'היום' : d===1 ? 'מחר' : d<=6 ? 'סוף השבוע' : 'בהמשך';
+const total    = s => Math.round(s.h * s.rate);
+const money    = n => `<span class="cur">₪</span>${n}`;
+const km       = s => s.km==null ? '' : `≈${s.km} ק״מ`;
+const bolt     = '<span class="icon icon-bolt"></span>';
+const van      = '<span class="icon icon-van"></span>';
+const esc      = t => String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* הדגלים כטקסט זעיר — לחלופות א ו-ג, שבהן תגית מלאה הורסת את הצפיפות.
+   שעת הסיום נכנסת כדגל ראשון ולא בעמודת הזמן: היא נחוצה (איך חוזרים
+   בשתיים לפנות בוקר) אבל היא לא מה שסורקים, ובעמודה היא הייתה מכפילה
+   את מספר הספרות שהעין צריכה לעבור. */
+/* "18+" חייב בידוד דו-כיווני: הפלוס הוא תו נייטרלי, ובלי bdi הוא
+   נודד לצד השני והתווית מתרנדרת "+18". אותו פגם קיים היום ב-app.html. */
+const AGE = '<bdi dir="ltr">18+</bdi>';
+
+function flags(s){
+  const f = [];
+  // המצב יושב בקו הדגלים ולא בעמודת הכסף: שם הוא היה מרחיב את
+  // העמודה וחותך את שם העיר, ו"איפה" היא אחת מארבע השאלות.
+  if(s.status==='applied')   f.push('<span class="ok">✓ המועמדות נשלחה</span>');
+  if(s.status==='cancelled') f.push('<span class="off">המשמרת בוטלה</span>');
+  f.push(`<span class="num">עד ${s.end}</span>`);
+  if(s.urgent)            f.push('<span class="hot">דחוף</span>');
+  if(s.adults)            f.push(`<span class="hot">${AGE}</span>`);
+  if(s.slots>1)           f.push(`<span class="need num">${s.slots} תקנים · נותרו ${s.slots-s.filled}</span>`);
+  if(s.transport)         f.push(`<span>${van} הסעות</span>`);
+  if(!s.verified)         f.push('<span>עסק לא מאומת</span>');
+  if(s.approx)            f.push('<span>מיקום משוער</span>');
+  else if(s.km!=null)     f.push(`<span class="num dist">${km(s)}</span>`);
+  // בלי מפרידי נקודה: כשהקו נשבר לשתי שורות המפריד נוחת בתחילת השורה
+  // השנייה ונראה כמו תקלה. המרווח לבדו מפריד, והוא לא נשבר לעולם.
+  return f.join('');
+}
+/* ---------- א ---------- */
+function rowA(s){
+  return `<div class="row-a ${s.urgent&&!s.status?'urgent':''} ${s.status==='cancelled'?'dim':''}">
+    <div class="a-when">
+      <span class="a-day">${esc(dayLabel(s.day))}</span>
+      <span class="a-time num">${esc(s.t)}</span>
+    </div>
+    <div class="a-mid">
+      <div class="a-role">${s.instant?bolt:''}${esc(s.role)}</div>
+      <div class="a-sub">${esc(s.biz)}${s.verified?' <span class="vr">✓</span>':''} · ${esc(s.city)}</div>
+      <div class="a-flags">${flags(s)}</div>
+    </div>
+    <div class="a-end">
+      <span class="a-total num">≈${money(total(s))}</span>
+      <span class="a-rate num">₪${s.rate} לשעה</span>
+    </div>
+  </div>`;
+}
+const renderA = list => `<div class="list-a">${list.map(rowA).join('')}</div>`;
+
+/* ---------- ב ---------- */
+function cardB(s){
+  const tags = [];
+  if(s.urgent)    tags.push('<span class="tag hot">דחוף</span>');
+  if(s.instant)   tags.push(`<span class="tag instant">${bolt} שיבוץ מיידי</span>`);
+  if(s.adults)    tags.push(`<span class="tag hot">${AGE}</span>`);
+  if(s.slots>1)   tags.push(`<span class="tag num">${s.slots} תקנים · נותרו ${s.slots-s.filled}</span>`);
+  if(s.transport) tags.push(`<span class="tag">${van} הסעות</span>`);
+  if(!s.verified) tags.push('<span class="tag">עסק לא מאומת</span>');
+  if(s.approx)    tags.push('<span class="tag">מיקום משוער</span>');
+  const foot = s.status==='applied'
+    ? '<span class="state">✓ המועמדות נשלחה</span>'
+    : s.status==='cancelled'
+      ? '<span class="state off">המשמרת בוטלה</span>'
+      : `<button class="btn">${s.instant?bolt+' תפיסת המשמרת':'הגשת מועמדות'}</button>`;
+  // אין סיכה ואין כתובת → אין קישור ניווט. זו ההכרעה של M20: ניווט
+  // למרכז העיר מבטיח דיוק שאינו קיים ושולח עובד לכתובת הלא נכונה.
+  const navOk = !!(s.addr || !s.approx);
+  const where = s.approx
+    ? `<span><span class="icon icon-pin"></span> ${esc(s.city)} · מיקום משוער</span>`
+    : `<span><span class="icon icon-pin"></span> ${esc(s.city)}${s.addr?' · '+esc(s.addr):''}</span>
+       <span class="num dist">${km(s)}</span>`;
+  return `<article class="card-b ${s.urgent&&!s.status?'urgent':''} ${s.status==='cancelled'?'dim':''}">
+    <div class="b-head">
+      <div>
+        <div class="b-when"><span class="num">${esc(dayLabel(s.day))} · ${esc(s.t)}–${esc(s.end)}</span></div>
+        <div class="b-what">${esc(s.role)} · ${esc(s.biz)}${s.verified?' <span class="vr">✓</span>':''}</div>
+      </div>
+      <div class="b-pay">
+        <span class="b-total num">≈${money(total(s))}</span>
+        <span class="b-rate num">₪${s.rate} לשעה · ${s.h} ש׳</span>
+      </div>
+    </div>
+    ${tags.length?`<div class="b-meta">${tags.join('')}</div>`:''}
+    <div class="b-where">${where}${navOk
+      ? '<a class="nav" href="#" onclick="return false"><span class="icon icon-nav"></span> ניווט</a>'
+      : ''}</div>
+    <div class="b-foot">${foot}</div>
+  </article>`;
+}
+const renderB = list => `<div class="list-b">${list.map(cardB).join('')}</div>`;
+
+/* ---------- ג ---------- */
+function itemC(s){
+  return `<div class="c-item ${s.urgent&&!s.status?'urgent':''} ${s.status==='cancelled'?'dim':''}">
+    <div>
+      <span class="c-time num">${esc(s.t)}</span>
+      <span class="c-len num">${s.h} ש׳</span>
+    </div>
+    <div class="c-mid">
+      <div class="c-role">${s.instant?bolt:''}${esc(s.role)}</div>
+      <div class="c-sub">${esc(s.biz)}${s.verified?' <span class="vr">✓</span>':''} · ${esc(s.city)}</div>
+      <div class="c-flags">${flags(s)}</div>
+    </div>
+    <div class="c-end">
+      <span class="c-total num">≈${money(total(s))}</span>
+      <span class="c-rate num">₪${s.rate} לשעה</span>
+    </div>
+  </div>`;
+}
+function renderC(list){
+  const order = ['היום','מחר','סוף השבוע','בהמשך'];
+  const groups = new Map(order.map(k => [k, []]));
+  list.forEach(s => groups.get(bucket(s.day)).push(s));
+  return `<div class="list-c">${order.filter(k => groups.get(k).length).map(k => `
+    <div class="c-head"><span class="h">${k}</span>
+      <span class="n num">${groups.get(k).length} משמרות</span>
+      <span class="line"></span></div>
+    ${groups.get(k).map(itemC).join('')}`).join('')}</div>`;
+}
+
+/* ---------- ציור ---------- */
+const el = id => document.getElementById(id);
+let dense = false;
+function draw(){
+  // מבחן הצפיפות: אותן משמרות, עשרים שורות. לא נתונים אחרים — עומס אחר.
+  const list = dense
+    ? Array.from({length:20}, (_,i) => ({ ...SHIFTS[i % SHIFTS.length],
+        day: SHIFTS[i % SHIFTS.length].day + (i>=SHIFTS.length ? 2 : 0) }))
+    : SHIFTS;
+  el('a_phone').innerHTML = el('a_desk').innerHTML = renderA(list);
+  el('b_phone').innerHTML = el('b_desk').innerHTML = renderB(list);
+  el('c_phone').innerHTML = el('c_desk').innerHTML = renderC(list);
+  el('mkCount').textContent = `${list.length} משמרות`;
+}
+el('mkDense').addEventListener('click', e => {
+  dense = !dense;
+  e.currentTarget.setAttribute('aria-pressed', String(dense));
+  draw();
+});
+el('mkTheme').addEventListener('click', e => {
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', dark ? 'light' : 'dark');
+  e.currentTarget.setAttribute('aria-pressed', String(!dark));
+  e.currentTarget.textContent = dark ? 'מצב כהה' : 'מצב בהיר';
+});
+draw();
+</script>
+</body>
+</html>
