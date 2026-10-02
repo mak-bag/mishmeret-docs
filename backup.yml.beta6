@@ -1,0 +1,238 @@
+name: nightly-backup
+
+# דאמפ לילי מוצפן של מסד משמרת.
+#
+# למה המבנה הזה ולא דאמפ פשוט:
+#   1. הדאמפ מוצפן, ואז **משוחזר בפועל** לתוך מסד זמני באותה ריצה.
+#      גיבוי שלא שוחזר מעולם אינו גיבוי — הוא קובץ. הבדיקה רצה על הקובץ
+#      המוצפן עצמו, כך שהיא מוכיחה גם את הדאמפ וגם את הסיסמה.
+#   2. החיבור דרך ה-session pooler ולא דרך המארח הישיר. המארח הישיר
+#      הוא IPv6 בלבד, ו-runner של GitHub הוא IPv4 בלבד — חיבור ישיר
+#      ייתקע עד timeout. זו הסיבה שהגרסה הקודמת לא הייתה רצה אף פעם.
+#   3. שורת לוג יומית בקומיט: גם הוכחה שהריצה קרתה, וגם פעילות בריפו
+#      שמונעת מ-GitHub להשבית תזמון בריפו שקט אחרי 60 יום.
+
+on:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# שתי ריצות במקביל היו נלחמות על אותה דחיפה ל-main.
+concurrency:
+  group: nightly-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    # מסד חד-פעמי לתרגיל השחזור. postgis, כי הסכימה משתמשת ב-geography
+    # ושחזור לתוך postgres נקי היה נופל על סוג עמודה חסר.
+    services:
+      drill:
+        image: postgis/postgis:17-3.4
+        env:
+          POSTGRES_PASSWORD: drill
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd=pg_isready
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # גרסת pg_dump חייבת להתאים לשרת (Postgres 17). ה-runner מגיע עם 16.
+      - name: Install postgresql-client 17
+        run: |
+          set -euo pipefail
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+            | sudo gpg --dearmor -o /usr/share/keyrings/pgdg.gpg
+          echo "deb [signed-by=/usr/share/keyrings/pgdg.gpg] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+
+      - name: Dump
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGSSLMODE: require
+        run: |
+          set -euo pipefail
+          if [ -z "${DB_URL:-}" ]; then
+            echo "SUPABASE_DB_URL is not set. Add it as a repository secret." >&2
+            exit 1
+          fi
+          # המארח הישיר הוא IPv6 בלבד ולא נגיש מכאן. נכשלים מוקדם עם
+          # הודעה מובנת במקום להיתקע עד timeout של חמש דקות.
+          if echo "$DB_URL" | grep -q 'db\..*\.supabase\.co'; then
+            echo "SUPABASE_DB_URL points at the direct IPv6-only host." >&2
+            echo "Use the Session pooler URI from Dashboard > Connect." >&2
+            exit 1
+          fi
+          # הפולר מזהה את הפרויקט דרך שם המשתמש: postgres.<ref>. בלי הסיומת
+          # הוא עונה "password authentication failed" — שבעה לילות אדומים
+          # (22–28/09) בגלל זה. נכשלים כאן עם הודעה שאומרת מה לתקן. (DevOps)
+          if echo "$DB_URL" | grep -qE '://postgres(:|@)'; then
+            echo "Pooler URI needs user postgres.<project-ref>, not bare postgres." >&2
+            exit 1
+          fi
+          echo "STAMP=$(date -u +%Y-%m-%d)" >> "$GITHUB_ENV"
+          # **נתיב מלא ל-17.** ה-runner מגיע עם Postgres 16 מותקן, ו-pg_dump
+          # שב-PATH הוא ה-wrapper שבוחר ב-16 — "server version mismatch".
+          # התקנת client-17 לבדה לא מספיקה. (28/09)
+          PGBIN=/usr/lib/postgresql/17/bin
+          echo "PGBIN=$PGBIN" >> "$GITHUB_ENV"
+          "$PGBIN/pg_dump" --version
+          # בלי --no-privileges במכוון: כל מודל ההרשאות של הפרויקט הוא
+          # GRANT-ים, ודאמפ בלעדיהם משחזר מסד שהאפליקציה לא עובדת מולו.
+          "$PGBIN/pg_dump" "$DB_URL" --format=custom --no-owner -f dump.pgc
+          ls -lh dump.pgc
+
+      - name: Encrypt
+        env:
+          PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          if [ -z "${PASSPHRASE:-}" ]; then
+            echo "BACKUP_PASSPHRASE is not set. Add it as a repository secret." >&2
+            exit 1
+          fi
+          gpg --batch --yes --symmetric --cipher-algo AES256 \
+              --passphrase "$PASSPHRASE" \
+              -o "mishmeret-$STAMP.pgc.gpg" dump.pgc
+          shred -u dump.pgc
+          ls -lh "mishmeret-$STAMP.pgc.gpg"
+
+      # **הגיבוי נשמר לפני התרגיל, לא אחריו.** בסדר הקודם, תרגיל שנכשל
+      # השאיר לילה בלי שום עותק — גם כשהדאמפ עצמו היה תקין. תרגיל אדום
+      # עדיין צובע את הריצה באדום, אבל הקובץ כבר בידינו. (28/09)
+      - name: Store encrypted backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: mishmeret-db-${{ env.STAMP }}
+          path: mishmeret-${{ env.STAMP }}.pgc.gpg
+          retention-days: 90
+          if-no-files-found: error
+
+      # עותק מחוץ ל-GitHub. ארטיפקט ב-GitHub נופל יחד עם חשבון GitHub —
+      # זה מה שמגן מפני השתלטות על החשבון, ולא מפני מחיקה בלבד.
+      # מדלג בשקט כל עוד R2 לא הופעל (N9), ואינו מפיל את הגיבוי בגללו.
+      # **רץ לפני התרגיל**, מאותו נימוק שהקדים את הארטיפקט: תרגיל אדום לא
+      # אמור למנוע את העותק שמחוץ ל-GitHub — והוא דווקא זה שמגן מפני
+      # השתלטות על החשבון, להבדיל ממחיקה. (DevOps, 01/10)
+      - name: Copy to Cloudflare R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "${AWS_ACCESS_KEY_ID:-}" ] || [ -z "${R2_ACCOUNT_ID:-}" ]; then
+            echo "R2 secrets absent - skipping off-provider copy (see N9)."
+            echo "R2_STATE=skipped" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          aws s3 cp "mishmeret-$STAMP.pgc.gpg" \
+            "s3://mishmeret-backups/mishmeret-$STAMP.pgc.gpg" \
+            --endpoint-url "https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com" \
+            --only-show-errors
+          echo "R2_STATE=uploaded" >> "$GITHUB_ENV"
+
+      # מכאן והלאה עובדים על הקובץ המוצפן בלבד — בדיוק מה שנשמר.
+      - name: Restore drill
+        env:
+          PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+          PGPASSWORD: drill
+        run: |
+          set -euo pipefail
+          gpg --batch --yes --quiet --decrypt \
+              --passphrase "$PASSPHRASE" \
+              -o drill.pgc "mishmeret-$STAMP.pgc.gpg"
+          P() { "$PGBIN/psql" -h localhost -p 5433 -U postgres -d postgres -v ON_ERROR_STOP=1 "$@"; }
+
+          # תפקידים: לא רשימה קבועה — כל תפקיד שהדאמפ מעניק לו או מגדיר
+          # עליו מדיניות. רשימה ידנית נשברת בפעם הראשונה ש-Supabase מוסיפה
+          # תפקיד, ו--exit-on-error היה מפיל את התרגיל על GRANT.
+          ROLES=$("$PGBIN/pg_restore" -f - drill.pgc \
+                  | grep -oE '\b(TO|FROM) "?[a-z_][a-z0-9_]*"?' | awk '{gsub(/"/,"",$2); print $2}' \
+                  | grep -vE '^(public|postgres|pg_[a-z_]+)$' | sort -u)
+          for r in $ROLES; do
+            P -qc "do \$\$ begin if not exists (select 1 from pg_roles where rolname='$r') then create role \"$r\"; end if; end \$\$;"
+          done
+          echo "roles created: $(echo $ROLES | wc -w)"
+
+          # מה שהסכימה שלנו נשענת עליו ואינו בה: geography (postgis),
+          # gen_random_uuid/crypt (pgcrypto), uuid-ossp — כולן ב-extensions,
+          # כמו בפרודקשן. auth ו-private נכנסים לשחזור: FK ל-auth.users,
+          # auth.uid() במדיניות, ו-private.* בכל RPC ובכל מדיניות.
+          # pg_restore --schema=X משחזר את מה שבתוך X, לא את CREATE SCHEMA X
+          # עצמו (ל-SCHEMA אין namespace ב-TOC). לכן יוצרים אותן מראש.
+          for s in extensions auth private supabase_migrations; do
+            P -qc "create schema if not exists $s;"
+          done
+          # **תמונת postgis/postgis מגיעה עם postgis מותקן ב-public** (וגם
+          # topology/tiger שתלויים בו). "if not exists" דילג, ו-geography
+          # נשאר ב-public בזמן שהדאמפ מבקש extensions.geography — כך נפל
+          # התרגיל בריצה #10. מסירים ומתקינים במקום הנכון. (28/09)
+          P -qc "drop extension if exists postgis cascade;"
+          # הדאמפ מוסיף טבלאות לפרסום realtime של Supabase (ALTER PUBLICATION
+          # supabase_realtime ADD TABLE ...). במסד נקי אין אותו — ריצה #11.
+          P -qc "do \$\$ begin if not exists (select 1 from pg_publication where pubname='supabase_realtime') then create publication supabase_realtime; end if; end \$\$;"
+          for e in postgis pgcrypto '"uuid-ossp"'; do
+            P -qc "create extension if not exists $e with schema extensions;"
+          done
+
+          "$PGBIN/pg_restore" --exit-on-error --no-owner \
+            --schema=auth --schema=private --schema=public --schema=supabase_migrations \
+            -h localhost -p 5433 -U postgres -d postgres drill.pgc
+          shred -u drill.pgc
+
+      - name: Drill assertions
+        env:
+          PGPASSWORD: drill
+        run: |
+          set -euo pipefail
+          q() { "$PGBIN/psql" -h localhost -p 5433 -U postgres -d postgres -tAc "$1"; }
+
+          MIGRATIONS=$(q "select count(*) from supabase_migrations.schema_migrations;")
+          HEAD=$(q "select max(version) from supabase_migrations.schema_migrations;")
+          TABLES=$(q "select count(*) from pg_tables where schemaname='public';")
+          NONZERO=$(q "select count(*) from (select 1 from pg_tables t where t.schemaname='public' and (xpath('/row/c/text()', query_to_xml(format('select count(*) c from public.%I', t.tablename), false, true, '')))[1]::text::int > 0) s;")
+          AUTH_USERS=$(q "select count(*) from auth.users;" 2>/dev/null || echo 0)
+
+          echo "migrations=$MIGRATIONS head=$HEAD tables=$TABLES nonzero=$NONZERO auth_users=$AUTH_USERS"
+          echo "DRILL_LINE=migrations=$MIGRATIONS head=$HEAD tables=$TABLES nonzero=$NONZERO auth_users=$AUTH_USERS" >> "$GITHUB_ENV"
+
+          # שחזור שמחזיר סכימה ריקה "מצליח" טכנית. אלה התנאים שהופכים
+          # את התרגיל לבדיקה במקום לטקס.
+          [ "$MIGRATIONS" -gt 0 ]  || { echo "no migration history restored" >&2; exit 1; }
+          [ "$TABLES"     -ge 12 ] || { echo "expected >=12 public tables, got $TABLES" >&2; exit 1; }
+          [ "$NONZERO"    -ge 6  ] || { echo "expected >=6 non-empty tables, got $NONZERO" >&2; exit 1; }
+          # הדאמפ כולל את auth, אבל עד כה שום טענה לא בדקה אותה: שחזור שבו
+          # auth.users חוזרת ריקה היה עובר בירוק — כל הנתונים חוזרים ואיש לא
+          # מתחבר, כי ההתחברות היא הטלפון הממופה לכתובת סינתטית שם. (DevOps)
+          [ "$AUTH_USERS" -ge 1 ] || { echo "no auth.users restored - nobody could log in" >&2; exit 1; }
+
+      # רץ גם כשהתרגיל נכשל — כדי שהלוג יגיד "יש קובץ, התרגיל אדום"
+      # ולא ישתוק. ורק אם יש קובץ מוצפן לתעד.
+      - name: Record run
+        if: always() && hashFiles('mishmeret-*.pgc.gpg') != ''
+        run: |
+          set -euo pipefail
+          mkdir -p backups
+          SIZE=$(stat -c%s "mishmeret-$STAMP.pgc.gpg")
+          echo "$STAMP  ${SIZE} bytes  r2=${R2_STATE:-skipped}  ${DRILL_LINE:-drill=unknown}" >> backups/log.txt
+          git config user.name  "backup-bot"
+          git config user.email "backup@users.noreply.github.com"
+          git add backups/log.txt
+          git commit -m "backup $STAMP" || exit 0
+          # ריצה לילית שמוצאת את main מקודם לא אמורה להפיל את הגיבוי.
+          git pull --rebase origin main
+          git push
