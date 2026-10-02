@@ -21,7 +21,8 @@
 param(
   [string]$Html    = "app.html",
   [string]$Headers = "_headers",
-  [switch]$Update
+  [switch]$Update,
+  [switch]$Apply
 )
 
 $ErrorActionPreference = 'Stop'
@@ -65,7 +66,21 @@ Write-Host "`n$($found.Count) inline <script> blocks in $Html`n" -ForegroundColo
 $found | Format-Table Line, Bytes, Attrs, Hash -AutoSize
 
 # --- 4. השוואה ל-_headers ----------------------------------------------------
-$hdr      = [System.IO.File]::ReadAllText((Resolve-Path $Headers).Path)
+# BOM ב-_headers: עורכים ב-Windows מוסיפים אותו בשקט, והוא יושב לפני השורה
+# הראשונה. Cloudflare קורא את הקובץ כטקסט, והתו הבלתי-נראה הזה הופך את
+# שורת ההערה הראשונה לשורה שאינה הערה. קרה ב-02/10. נבדק כאן כדי שלא
+# יחזור בשקט. (DevOps — המחזיק של _headers)
+$hdrPath  = (Resolve-Path $Headers).Path
+$firstTwo = [byte[]](Get-Content -LiteralPath $hdrPath -Encoding Byte -TotalCount 3)
+if ($firstTwo.Length -ge 3 -and $firstTwo[0] -eq 0xEF -and $firstTwo[1] -eq 0xBB -and $firstTwo[2] -eq 0xBF) {
+  Write-Host "BOM in $Headers - remove it before shipping the zip." -ForegroundColor Red
+  Write-Host "  PowerShell: [IO.File]::WriteAllText('$hdrPath', [IO.File]::ReadAllText('$hdrPath'), (New-Object Text.UTF8Encoding `$false))" -ForegroundColor Gray
+  $bom = $true
+} else {
+  $bom = $false
+}
+
+$hdr      = [System.IO.File]::ReadAllText($hdrPath)
 $inHdr    = [regex]::Matches($hdr, "'(sha256-[A-Za-z0-9+/=]+)'") |
               ForEach-Object { $_.Groups[1].Value } | Select-Object -Unique
 $computed = $found.Hash | Select-Object -Unique
@@ -75,9 +90,12 @@ $stale   = @($inHdr    | Where-Object { $computed -notcontains $_ })
 
 Write-Host "_headers holds $($inHdr.Count) hash(es); the file produces $($computed.Count)." -ForegroundColor Cyan
 
-if ($missing.Count -eq 0 -and $stale.Count -eq 0) {
-  Write-Host "MATCH - every inline script is covered, nothing stale.`n" -ForegroundColor Green
+if ($missing.Count -eq 0 -and $stale.Count -eq 0 -and -not $bom) {
+  Write-Host "MATCH - every inline script is covered, nothing stale, no BOM.`n" -ForegroundColor Green
   $exit = 0
+} elseif ($missing.Count -eq 0 -and $stale.Count -eq 0) {
+  Write-Host "hashes match, but the BOM above must go.`n" -ForegroundColor Yellow
+  $exit = 1
 } else {
   foreach ($h in $missing) { Write-Host "MISSING from _headers : $h" -ForegroundColor Red }
   foreach ($h in $stale)   { Write-Host "STALE in _headers     : $h" -ForegroundColor Yellow }
@@ -89,6 +107,29 @@ if ($Update) {
   $joined = ($computed | ForEach-Object { "'$_'" }) -join ' '
   Write-Host "script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' $joined" -ForegroundColor Gray
   Write-Host ""
+}
+
+# --- 5. -Apply: כותב את ה-hashes לתוך _headers -------------------------------
+# זה הנתיב היחיד שבו _headers אמור להשתנות. עריכה ידנית היא מה שהכניסה
+# BOM ב-02/10 ומה שהשאיר hash של גרסת ביניים. הכתיבה כאן היא UTF-8 בלי
+# BOM, ושאר הקובץ אינו נגוע — מוחלף רק רצף ה-'sha256-...'.
+#
+# מריצים אותו על הקובץ שבתוך ה-zip, לא על עץ העבודה:
+#   .\scripts\csp-hashes.ps1 -Html <zip>\index.html -Headers <zip>\_headers -Apply
+if ($Apply) {
+  if ($missing.Count -eq 0 -and $stale.Count -eq 0 -and -not $bom) {
+    Write-Host "nothing to apply - already correct.`n" -ForegroundColor Green
+  } else {
+    $joined  = ($computed | ForEach-Object { "'$_'" }) -join ' '
+    $updated = $hdr -replace "(?:'sha256-[A-Za-z0-9+/=]+'\s*)+", "$joined "
+    if ($updated -eq $hdr) {
+      Write-Host "could not find a hash list in $Headers - not written." -ForegroundColor Red
+      exit 1
+    }
+    [System.IO.File]::WriteAllText($hdrPath, $updated, (New-Object System.Text.UTF8Encoding $false))
+    Write-Host "written: $($computed.Count) hash(es) into $Headers (UTF-8, no BOM).`n" -ForegroundColor Green
+    $exit = 0
+  }
 }
 
 exit $exit
