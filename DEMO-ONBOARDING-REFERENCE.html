@@ -1,0 +1,221 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!-- מקור: המייסד, 03/10/2026 — "להמחשה של הוויב העיצובי". רפרנס בלבד, לא קוד מוצר.
+     הכרעות היישור: ROUND-U-PILOT-ARCHITECTURE.md §7. -->
+<title>Mishmeret Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--stage:#EEF3FB;--ink:#0B1630;--muted:#3D4B66;--soft:#64748B;--blue:#1257D6;--line:#D9DFEA;--card:#FFFFFF}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--stage:#0A1226;--ink:#EAF0FB;--muted:#B7C4DD;--soft:#8A97AD;--line:#24324F;--card:#111C36}}
+:root[data-theme="dark"]{--stage:#0A1226;--ink:#EAF0FB;--muted:#B7C4DD;--soft:#8A97AD;--line:#24324F;--card:#111C36}
+*{box-sizing:border-box}
+body{margin:0;background:var(--stage);font-family:'Heebo',system-ui,sans-serif;color:var(--ink);direction:rtl}
+.stage{min-height:100vh;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:56px;align-items:center;max-width:1180px;margin:0 auto;padding:40px 24px}
+@media (max-width:900px){.stage{grid-template-columns:1fr;justify-items:center;gap:28px;padding:24px 16px}.side{order:2;max-width:420px}}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;margin-bottom:28px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:rgba(18,87,214,.12);color:var(--blue);font-weight:600;font-size:14px}
+h1{font-weight:900;font-size:clamp(34px,4.4vw,56px);line-height:1.04;letter-spacing:-.02em;margin:16px 0 14px}
+.lead{font-size:18px;line-height:1.65;color:var(--muted);margin:0 0 28px;max-width:520px}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;max-width:520px}
+.steps li{display:flex;gap:14px;padding:12px 14px;border-radius:14px;cursor:pointer;transition:background .25s ease}
+.steps li:hover{background:rgba(18,87,214,.06)}
+.steps .n{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;background:var(--card);border:1.5px solid var(--line);color:var(--soft);transition:all .3s ease}
+.steps .t{font-weight:700;font-size:16px}.steps .d{font-size:14px;line-height:1.5;color:var(--soft);max-height:0;overflow:hidden;transition:max-height .4s ease,margin .3s ease}
+.steps li.on{background:var(--card);box-shadow:0 10px 30px -18px rgba(11,22,48,.35)}
+.steps li.on .n{background:var(--blue);border-color:var(--blue);color:#fff}
+.steps li.on .d{max-height:80px;margin-top:4px}
+.ctrl{display:flex;gap:10px;margin-top:22px;align-items:center}
+.cbtn{height:44px;padding:0 18px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:600 15px 'Heebo',sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.cbtn.p{background:var(--blue);border-color:var(--blue);color:#fff}
+.note{font-size:13px;color:var(--soft);margin-top:14px}
+.phoneWrap{position:relative}
+.glowbg{position:absolute;inset:-60px;background:radial-gradient(closest-side,rgba(18,87,214,.22),transparent);pointer-events:none;animation:breath 6s ease-in-out infinite}
+@keyframes breath{50%{transform:scale(1.08);opacity:.7}}
+.phone{position:relative;width:390px;height:844px;border-radius:56px;padding:12px;background:#0B1630;box-shadow:0 2px 4px rgba(11,22,48,.1),0 40px 80px -30px rgba(11,22,48,.55)}
+@media (max-height:900px){.phone{transform:scale(.8);transform-origin:top center;margin-bottom:-170px}}
+@media (max-width:440px){.phone{transform:scale(.86);transform-origin:top center;margin-bottom:-120px}}
+.screen{position:relative;width:366px;height:820px;border-radius:44px;overflow:hidden;background:#fff;color:#0B1630}
+.notch{position:absolute;top:10px;left:50%;margin-left:-55px;width:110px;height:30px;border-radius:16px;background:#0B1630;z-index:20}
+.cursor{position:absolute;z-index:30;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:rgba(18,87,214,.25);border:2px solid rgba(18,87,214,.9);pointer-events:none;transition:top .6s cubic-bezier(.4,0,.2,1),left .6s cubic-bezier(.4,0,.2,1),opacity .3s;opacity:0}
+.cursor.tap{animation:tap .35s ease}
+@keyframes tap{50%{transform:scale(.7);background:rgba(18,87,214,.5)}}
+.app button{font-family:'Heebo',sans-serif}
+.press{transition:transform .15s ease,background .2s ease,border-color .2s ease,color .2s ease,box-shadow .2s ease}.press:active{transform:scale(.97)}
+.inS{animation:inS .45s cubic-bezier(.2,.8,.2,1) both}@keyframes inS{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+.up{animation:up .5s cubic-bezier(.2,.8,.2,1) both}@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.d1{animation-delay:.06s}.d2{animation-delay:.14s}.d3{animation-delay:.22s}
+.sl{animation:sl .55s cubic-bezier(.2,.8,.2,1) both}@keyframes sl{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
+.fl{animation:fl 5s ease-in-out infinite}@keyframes fl{50%{transform:translateY(-6px)}}
+.ring{animation:ring 2.2s ease-out infinite;transform-box:fill-box;transform-origin:center}@keyframes ring{0%{transform:scale(.7);opacity:.7}100%{transform:scale(1.7);opacity:0}}
+.drop{animation:drop .6s cubic-bezier(.3,1.5,.5,1) both}@keyframes drop{from{transform:translateY(-26px);opacity:0}to{transform:none;opacity:1}}
+.pop{animation:pop .5s cubic-bezier(.3,1.6,.5,1) both}@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
+.ck{stroke-dasharray:1;stroke-dashoffset:1;animation:ck .5s cubic-bezier(.6,.1,.3,1) .15s forwards}@keyframes ck{to{stroke-dashoffset:0}}
+.caret{display:inline-block;width:2px;height:18px;background:#1257D6;margin-inline-start:1px;vertical-align:middle;animation:blink 1s steps(1) infinite}@keyframes blink{50%{opacity:0}}
+.cta{position:relative;overflow:hidden}
+.cta::after{content:"";position:absolute;top:0;bottom:0;left:0;width:45%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);transform:translateX(130%) skewX(-18deg);animation:sheen 4.5s ease-in-out 1s infinite;pointer-events:none}
+@keyframes sheen{0%{transform:translateX(130%) skewX(-18deg)}55%,100%{transform:translateX(-260%) skewX(-18deg)}}
+.cta.off::after{display:none}
+.fillbar{position:relative;overflow:hidden}.fillbar::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);animation:fb 1.8s ease-in-out infinite}@keyframes fb{from{transform:translateX(100%)}to{transform:translateX(-100%)}}
+.glow{animation:glow 2.6s ease-in-out infinite}@keyframes glow{50%{filter:drop-shadow(0 0 6px rgba(18,87,214,.6))}}
+.burst{position:absolute;inset:0;border-radius:50%;border:2px solid #1877F2;animation:burst 1.6s ease-out .2s infinite}.b2{animation-delay:.8s}@keyframes burst{to{transform:scale(2.2);opacity:0}}
+.rad{transition:r .5s cubic-bezier(.2,.8,.2,1)}
+.chip{height:42px;padding:0 15px;border-radius:12px;border:1.5px solid #D9DFEA;background:#fff;color:#0B1630;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px}
+.chip.on{background:#0B1630;border-color:#0B1630;color:#fff}
+.scroll{overflow-y:auto;scrollbar-width:none}.scroll::-webkit-scrollbar{display:none}
+@media (prefers-reduced-motion: reduce){*,*::after{animation:none !important;transition:none !important}.ck{stroke-dashoffset:0}}
+</style>
+
+<div class="stage">
+<div class="side">
+<div class="brand"><svg width="36" height="36" viewBox="0 0 120 120" aria-hidden="true"><path d="M38 10 H82 A28 28 0 0 1 110 38 V70 A28 28 0 0 1 82 98 H50 L28 114 L31 95 A28 28 0 0 1 10 70 V38 A28 28 0 0 1 38 10 Z" fill="#1257D6"/><text x="60" y="77" text-anchor="middle" font-family="Heebo, sans-serif" font-weight="800" font-size="64" fill="#fff">מ</text></svg>משמרת</div>
+<span class="eyebrow">דמו · הרשמה עם מדריך</span>
+<h1>נרשמים בדקה.<br>בלי קורות חיים.</h1>
+<p class="lead">כל שלב מסביר למה שואלים ומראה איך זה ייראה לעסק. הפרטים נשלחים רק לעסק שבחרתם. הדמו רץ לבד, ואפשר ללחוץ על כל שלב או לנסות בתוך הטלפון.</p>
+<ol class="steps" id="steps"></ol>
+<div class="ctrl"><button class="cbtn p" id="playBtn" type="button">השהיה</button><button class="cbtn" id="restartBtn" type="button">מההתחלה</button><button class="cbtn" id="roleBtn" type="button">הצג כעסק</button></div>
+<div class="note">שמות ומספרים בדמו הם לדוגמה בלבד.</div>
+</div>
+<div class="phoneWrap"><div class="glowbg"></div><div class="phone"><div class="screen app" id="screen"><div class="notch"></div><div id="view" style="position:absolute;inset:0"></div><div class="cursor" id="cursor"></div></div></div></div>
+</div>
+
+<script>
+(function(){
+var LOGO='<svg width="30" height="30" viewBox="0 0 120 120" aria-hidden="true"><path d="M38 10 H82 A28 28 0 0 1 110 38 V70 A28 28 0 0 1 82 98 H50 L28 114 L31 95 A28 28 0 0 1 10 70 V38 A28 28 0 0 1 38 10 Z" fill="#fff"/><text x="60" y="77" text-anchor="middle" font-family="Heebo, sans-serif" font-weight="800" font-size="64" fill="#1257D6">מ</text></svg>';
+var ARROW='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>';
+var CHECK='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" class="pop"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
+var cities=['נתניה','חדרה','כפר יונה','אבן יהודה','רעננה','תל אביב'];
+var times=['בוקר','צהריים','ערב','לילה','סופ״ש'];
+var fields=['מלצרות','בר','מטבח','מחסן','קופה','אירועים','ניקיון','שליחויות'];
+var cats=['מסעדה','בית קפה','בר','קמעונאות','לוגיסטיקה','אירועים'];
+var S;
+function reset(role){S={step:0,slide:0,role:role||'',city:'',cat:'',dist:10,sel:{},checks:{},ti:0};}
+reset('');
+var view=document.getElementById('view'),cursor=document.getElementById('cursor');
+var stepsInfo=[
+ ['ברוכים הבאים','שלוש שקופיות קצרות מסבירות את הרעיון לפני שמבקשים משהו.'],
+ ['מי את/ה כאן?','בחירה אחת מתאימה את כל ההמשך, ואומרת כמה צעדים נשארו.'],
+ ['איפה נוח לעבוד','המפה מראה בזמן אמת כמה מודעות נכנסות לטווח.'],
+ ['מתי ומה','בוחרים כמה שרוצים. המדריך מבהיר שזה רק ממיין.'],
+ ['כמעט סיימנו','רואים בדיוק איך העסק יראה את הפנייה, לפני שמסכימים.'],
+ ['הכול מוכן','סיכום, ומה יראו בסיור הקצר בכניסה הראשונה.']];
+var stepsEl=document.getElementById('steps');
+stepsEl.innerHTML=stepsInfo.map(function(s,i){return '<li data-i="'+i+'"><span class="n">'+(i+1)+'</span><div><div class="t">'+s[0]+'</div><div class="d">'+s[1]+'</div></div></li>';}).join('');
+stepsEl.addEventListener('click',function(e){var li=e.target.closest('li');if(!li)return;jumpTo(+li.dataset.i);});
+
+function seek(){return S.role!=='biz';}
+function picked(list,ns){return list.filter(function(x){return S.sel[ns+x];});}
+function chips(list,key,multi,ns){return '<div style="display:flex;flex-wrap:wrap;gap:8px">'+list.map(function(x){var on=multi?S.sel[ns+x]:S[key]===x;return '<button class="chip press'+(on?' on':'')+'" data-act="'+(multi?'m':'s')+'" data-k="'+(multi?ns:key)+'" data-v="'+x+'">'+(on?CHECK:'')+'<span>'+x+'</span></button>';}).join('')+'</div>';}
+function label(t){return '<div style="font-size:13px;font-weight:700;color:#64748B;margin-bottom:10px">'+t+'</div>';}
+
+function cfg(){
+ var sk=seek(),st=S.step,pT=picked(times,'t:'),pF=picked(fields,'f:');
+ var cd=sk?['אני מעל גיל 18','קראתי ואני מסכים/ה לתנאי השימוש והפרטיות']:['אני מורשה לפרסם בשם העסק','קראתי ואני מסכים/ה לתנאי השימוש והפרטיות'];
+ var allC=cd.every(function(c,i){return S.checks[i];});
+ if(st===1)return{title:'מי את/ה כאן?',sub:'נתאים את האפליקציה למה שצריך. זה לוקח פחות מדקה.',tipT:'מה יקרה עכשיו?',tipB:'שלושה צעדים קצרים, ואחריהם סיור של כמה שניות.',ok:!!S.role};
+ if(st===2&&sk)return{title:'איפה נוח לך לעבוד?',sub:'נראה לך רק מודעות שאפשר להגיע אליהן.',tipT:'למה שואלים?',tipB:'רק עיר, לא כתובת. העיר והטווח קובעים אילו מודעות יופיעו.',ok:!!S.city};
+ if(st===2)return{title:'ספרו לנו על העסק',sub:'ככה מועמדים יבינו איפה הם יעבדו.',tipT:'טוב לדעת:',tipB:'הפרטים מופיעים על המודעות, ואפשר לערוך אותם בכל זמן.',ok:!!S.cat&&!!S.city};
+ if(st===3&&sk)return{title:'מתי ומה מעניין אותך?',sub:'אפשר לבחור כמה. זה רק כדי לסדר לך את המודעות.',tipT:'אל דאגה:',tipB:'הבחירות רק ממיינות. כל המודעות בטווח עדיין יופיעו.',ok:pT.length&&pF.length};
+ if(st===3)return{title:'את מי אתם מחפשים?',sub:'בחרו תפקידים ומשמרות. את המודעה תפרסמו בסוף.',tipT:'עוד לא מתפרסם כלום.',tipB:'בצעד הבא תראו איך המודעה תיראה למועמדים.',ok:pT.length&&pF.length};
+ if(st===4)return{title:'כמעט סיימנו',sub:sk?'שם וטלפון, וזהו. ככה העסק יראה אותך.':'שם העסק וטלפון לפניות. ככה המודעות ייראו.',tipT:sk?'שום דבר לא נשלח אוטומטית.':'חשוב לדעת:',tipB:sk?'הפרטים יוצאים רק כשלוחצים "שלח פרטים לעסק", ורק לאותו עסק.':'משמרת היא לוח מודעות. ההתקשרות, השכר והתנאים הם ביניכם לבין המועמד.',ok:allC,checks:cd};
+ return{title:sk?'הכול מוכן, דנה.':'הכול מוכן, קפה הים.',sub:sk?'הנה מה שהגדרת. מחכות לך מודעות בטווח.':'הנה מה שהגדרתם. עכשיו נפרסם את המודעה הראשונה.',tipT:'אפשר לחזור לסיור:',tipB:'כפתור "?" בראש כל מסך מראה את ההסבר שוב.',ok:true};
+}
+var slides=[['עבודה קרוב לבית.','בוחרים עיר וטווח, ורואים רק מודעות שאפשר להגיע אליהן.'],['פונים בלחיצה אחת.','שולחים פרטים רק לעסק שבחרתם. שום דבר לא יוצא אוטומטית.'],['העסק מתקשר.','לעסקים: הפניות מגיעות ישר לטלפון, עם שם, טלפון ומה שהמועמד כתב.']];
+function slideArt(i){
+ if(i===0)return '<svg viewBox="0 0 290 300" style="display:block;width:100%;height:100%"><rect width="290" height="300" fill="#F2F5FA"/><path d="M-10 70 C 60 96, 140 40, 300 110" stroke="#fff" stroke-width="14" fill="none"/><path d="M70 -10 C 92 80, 76 180, 120 310" stroke="#fff" stroke-width="10" fill="none"/><path d="M-10 220 C 100 200, 200 240, 300 205" stroke="#fff" stroke-width="8" fill="none"/><circle cx="145" cy="150" r="88" fill="#1257D6" fill-opacity=".08" stroke="#1257D6" stroke-width="1.5" stroke-dasharray="5 5"/><circle class="ring" cx="145" cy="150" r="16" fill="none" stroke="#1877F2" stroke-width="2"/><circle cx="145" cy="150" r="7" fill="#0B1630" stroke="#fff" stroke-width="3"/><g class="drop" style="animation-delay:.25s"><rect x="88" y="92" width="44" height="28" rx="8" fill="#1257D6"/></g><g class="drop" style="animation-delay:.45s"><rect x="168" y="168" width="44" height="28" rx="8" fill="#1257D6"/></g><g class="drop" style="animation-delay:.65s"><rect x="172" y="80" width="44" height="28" rx="8" fill="#1257D6"/></g><g fill="#C3CDDD"><rect x="20" y="30" width="34" height="22" rx="7"/><rect x="236" y="250" width="34" height="22" rx="7"/></g></svg>';
+ if(i===1)return '<div style="padding:22px;height:100%;display:flex;flex-direction:column;gap:14px;justify-content:center"><div style="display:flex;align-items:center;gap:12px"><div style="width:48px;height:48px;border-radius:14px;background:#EAF1FE"></div><div><div style="font-weight:700;font-size:17px">ברמן/ית</div><div style="font-size:13px;color:#64748B">בר־מסעדה · 2.4 ק״מ</div></div></div><div style="height:10px;border-radius:5px;background:#EEF2F8;width:86%"></div><div style="height:10px;border-radius:5px;background:#EEF2F8;width:64%"></div><div style="height:52px;border-radius:14px;background:#1257D6;color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-linecap="round"><circle cx="12" cy="12" r="9" fill="#fff"/><path class="ck" pathLength="1" d="m8 12.2 2.8 2.8 5.2-5.6" stroke="#1257D6" stroke-width="2.4"/></svg>הפרטים נשלחו לעסק</div><div style="font-size:12px;color:#64748B;text-align:center">רק לעסק הזה. לא לאף אחד אחר.</div></div>';
+ return '<div style="background:#0B1630;height:100%;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px"><div style="position:relative;width:84px;height:84px"><span class="burst"></span><span class="burst b2"></span><div style="position:absolute;inset:0;border-radius:50%;background:#1257D6;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:30px">ד</div></div><div style="text-align:center"><div style="font-weight:700;font-size:20px">שיחה נכנסת</div><div style="font-size:14px;color:#A9B8D6">קפה הים · לגבי המודעה ששלחת</div></div><div style="display:flex;gap:40px;margin-top:8px"><span style="width:56px;height:56px;border-radius:50%;background:#E5484D"></span><span style="width:56px;height:56px;border-radius:50%;background:#2FB463"></span></div></div>';
+}
+function render(anim,quiet){
+ var h='';
+ if(S.step===0){
+  h='<div style="position:absolute;inset:0;display:flex;flex-direction:column"><div style="position:relative;height:470px;background:#1257D6;overflow:hidden;display:flex;flex-direction:column;align-items:center;padding-top:54px"><svg viewBox="0 0 390 470" style="position:absolute;inset:0;width:100%;height:100%"><g fill="none" stroke="#fff" stroke-opacity=".1" style="transform-origin:195px 260px;animation:breath 6s ease-in-out infinite"><circle cx="195" cy="260" r="120"/><circle cx="195" cy="260" r="180"/><circle cx="195" cy="260" r="240"/></g></svg><div style="position:relative;display:flex;align-items:center;gap:8px;color:#fff;font-weight:800;font-size:20px">'+LOGO+'משמרת</div><div class="fl" style="position:relative;margin-top:32px;width:290px;height:300px"><div class="sl" style="position:absolute;inset:0;background:#fff;border-radius:26px;overflow:hidden;box-shadow:0 30px 60px -24px rgba(5,20,60,.6)">'+slideArt(S.slide)+'</div></div></div>'+
+  '<div style="flex-grow:1;padding:24px 24px 30px;display:flex;flex-direction:column;gap:10px"><div style="display:flex;gap:6px">'+[0,1,2].map(function(i){return '<span style="width:'+(i===S.slide?26:8)+'px;height:6px;border-radius:3px;background:'+(i===S.slide?'#1257D6':'#D5DDEB')+';transition:all .35s"></span>';}).join('')+'</div><div class="sl" style="min-height:110px"><div style="font-weight:900;font-size:30px;line-height:1.12;letter-spacing:-.5px">'+slides[S.slide][0]+'</div><div style="font-size:16px;line-height:1.6;color:#3D4B66;margin-top:8px">'+slides[S.slide][1]+'</div></div><div style="flex-grow:1"></div><button class="press cta" data-act="next" id="mainBtn" style="height:56px;border:none;border-radius:16px;background:#1257D6;color:#fff;font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 12px 24px -12px rgba(18,87,214,.9);cursor:pointer">בואו נתחיל '+ARROW+'</button><button style="height:44px;border:none;background:transparent;font-size:15px;font-weight:600;color:#0B1630">כבר יש לי חשבון</button></div></div>';
+  view.innerHTML=h;return;
+ }
+ var c=cfg(),sk=seek(),st=S.step,pT=picked(times,'t:'),pF=picked(fields,'f:');
+ var body='';
+ if(st===1){
+  body=[['seek','אני מחפש/ת עבודה','מודעות קרובות לבית, לפי יום ושעות. פונים לעסק בלחיצה.','עוד 3 צעדים קצרים'],['biz','אני עסק','מפרסמים מודעה ומקבלים פניות ישר לטלפון.','עוד 3 צעדים, ואז פרסום מודעה']].map(function(r,i){var on=S.role===r[0];return '<button class="press up d'+(i+1)+'" data-act="role" data-v="'+r[0]+'" style="width:100%;text-align:start;padding:18px;border-radius:20px;border:2px solid '+(on?'#1257D6':'#E4E9F2')+';background:'+(on?'#F4F8FF':'#fff')+';display:flex;gap:14px;align-items:flex-start;cursor:pointer;margin-bottom:12px;box-shadow:'+(on?'0 12px 26px -16px rgba(18,87,214,.7)':'none')+'"><span style="width:52px;height:52px;border-radius:16px;background:'+(on?'#DCE8FF':'#F2F5FA')+';flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px">'+(r[0]==='seek'?'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-linecap="round"><circle cx="11" cy="11" r="6.5" fill="#1257D6" fill-opacity=".18" stroke="#0B1630" stroke-width="1.6"/><path d="m20 20-4.2-4.2" stroke="#0B1630" stroke-width="1.6"/></svg>':'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h16v9.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19.5Z" fill="#1257D6" fill-opacity=".18"/><path d="M4 10h16v9.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19.5ZM3 10l2-6h14l2 6M9.5 21v-5h5v5" stroke="#0B1630" stroke-width="1.6"/></svg>')+'</span><span style="flex-grow:1"><span style="display:block;font-weight:800;font-size:19px">'+r[1]+'</span><span style="display:block;font-size:14px;line-height:1.55;color:#3D4B66;margin-top:4px">'+r[2]+'</span><span style="display:block;font-size:12px;font-weight:600;color:#1257D6;margin-top:6px">'+r[3]+'</span></span><span style="width:24px;height:24px;border-radius:50%;border:2px solid '+(on?'#1257D6':'#C3CDDD')+';background:'+(on?'#1257D6':'#fff')+';flex-shrink:0;transition:all .2s"></span></button>';}).join('');
+ }
+ if(st===2&&sk){
+  var rM={5:30,10:48,20:66,30:82}[S.dist],pins=[[22,30],[34,200],[42,120],[56,330],[62,250],[74,160],[80,20],[96,280],[130,190],[150,350]],inside=0;
+  var pinSvg=pins.map(function(p){var x=175+p[0]*Math.cos(p[1]*Math.PI/180),y=85+p[0]*.62*Math.sin(p[1]*Math.PI/180),inn=Math.hypot(x-175,y-85)<=rM;if(inn)inside++;return '<rect x="'+(x-11).toFixed(0)+'" y="'+(y-7).toFixed(0)+'" width="22" height="15" rx="4" fill="'+(inn?'#1257D6':'#C3CDDD')+'" style="transition:fill .4s"/>';}).join('');
+  body='<div class="up d1">'+label('עיר')+chips(cities,'city')+'</div><div class="up d2" style="margin-top:20px;background:#fff;border:1px solid #E4E9F2;border-radius:20px;overflow:hidden"><svg viewBox="0 0 350 170" style="display:block;width:100%"><rect width="350" height="170" fill="#F2F5FA"/><path d="M-10 46 C 70 66, 150 26, 360 80" stroke="#fff" stroke-width="10" fill="none"/><path d="M80 -10 C 100 60, 90 120, 130 180" stroke="#fff" stroke-width="8" fill="none"/><path d="M-10 132 C 120 120, 230 150, 360 120" stroke="#fff" stroke-width="6" fill="none"/><circle class="rad" id="radc" cx="175" cy="85" r="'+(S._prevR||rM)+'" fill="#1257D6" fill-opacity=".09" stroke="#1257D6" stroke-width="1.5" stroke-dasharray="5 5"/><circle class="ring" cx="175" cy="85" r="10" fill="none" stroke="#1877F2" stroke-width="2"/><circle cx="175" cy="85" r="6" fill="#0B1630" stroke="#fff" stroke-width="2.5"/>'+pinSvg+'</svg><div style="padding:14px"><div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:#64748B;margin-bottom:10px"><span>טווח מהבית</span><span style="color:#1257D6">'+(inside===1?'מודעה אחת':inside+' מודעות')+' בטווח</span></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:#F2F5FA;padding:4px;border-radius:12px">'+[5,10,20,30].map(function(d){var on=S.dist===d;return '<button class="press" data-act="dist" data-v="'+d+'" style="height:38px;border:none;border-radius:9px;background:'+(on?'#fff':'transparent')+';color:'+(on?'#1257D6':'#3D4B66')+';font-size:14px;font-weight:700;cursor:pointer;box-shadow:'+(on?'0 1px 3px rgba(11,22,48,.15)':'none')+'">'+d+' ק״מ</button>';}).join('')+'</div></div></div>';
+  S._nextR=rM;
+ }
+ if(st===2&&!sk)body='<div class="up d1">'+label('סוג העסק')+chips(cats,'cat')+'</div><div class="up d2" style="margin-top:20px">'+label('עיר')+chips(cities,'city')+'</div>';
+ if(st===3)body=sk?'<div class="up d1">'+label('מתי נוח לך')+chips(times,'',true,'t:')+'</div><div class="up d2" style="margin-top:20px">'+label('תחומים')+chips(fields,'',true,'f:')+'</div>':'<div class="up d1">'+label('תפקידים')+chips(fields,'',true,'f:')+'</div><div class="up d2" style="margin-top:20px">'+label('משמרות')+chips(times,'',true,'t:')+'</div>';
+ if(st===4){
+  var nm=sk?'דנה לוי':'קפה הים',ph='050-1234567',t1=Math.min(S.ti,nm.length),t2=Math.max(0,Math.min(S.ti-nm.length-3,ph.length));
+  var nS=nm.slice(0,t1),pS=ph.slice(0,t2),place=S.city||'[עיר]';
+  var fld=function(l,v,act,ltr){return '<div style="height:56px;border-radius:14px;border:1.5px solid '+(act?'#1257D6':'#D9DFEA')+';background:#fff;padding:0 14px;display:flex;flex-direction:column;justify-content:center;margin-bottom:10px;transition:border-color .2s"><span style="font-size:11px;font-weight:600;color:#64748B">'+l+'</span><span style="font-size:16px;font-weight:600;min-height:22px;'+(ltr?'direction:ltr;text-align:right':'')+'">'+v+(act?'<span class="caret"></span>':'')+'</span></div>';};
+  var tags=sk?[place+' · עד '+S.dist+' ק״מ'].concat(pT.length?['זמינות: '+pT.join(', ')]:[]).concat(pF.length?[pF.join(' · ')]:[]):(pT.length?pT:['[משמרות]']);
+  var tagH=tags.map(function(t){return '<span style="font-size:12px;font-weight:600;padding:5px 9px;border-radius:8px;background:#F2F5FA;color:#23324D">'+t+'</span>';}).join('');
+  var pv=sk?'<div style="background:#fff;border:1px solid #E4E9F2;border-radius:18px;box-shadow:0 12px 30px -18px rgba(11,22,48,.35);overflow:hidden"><div style="padding:10px 14px;background:#F7F9FC;border-bottom:1px solid #EEF2F8;font-size:12px;color:#64748B;display:flex;justify-content:space-between"><span>פנייה חדשה · [שם המשרה]</span><span>עכשיו</span></div><div style="padding:14px;display:flex;gap:12px;align-items:center"><div style="width:44px;height:44px;border-radius:50%;background:#1257D6;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px">'+(nS[0]||'?')+'</div><div><div style="font-weight:700;font-size:16px">'+(nS||'[השם שלך]')+' <span style="font-size:12px;font-weight:600;color:#1257D6;background:#EAF1FE;padding:2px 7px;border-radius:6px">מעל 18</span></div><div style="font-size:13px;color:#3D4B66;direction:ltr;text-align:right">'+(pS||'05X-XXXXXXX')+'</div></div></div><div style="padding:0 14px 14px;display:flex;flex-wrap:wrap;gap:6px">'+tagH+'</div></div>'
+   :'<div style="background:#fff;border:1px solid #E4E9F2;border-radius:18px;box-shadow:0 12px 30px -18px rgba(11,22,48,.35);padding:14px;display:flex;flex-direction:column;gap:10px"><div style="display:flex;gap:12px;align-items:center"><div style="width:44px;height:44px;border-radius:12px;background:#EAF1FE"></div><div><div style="font-weight:700;font-size:16px">'+(pF[0]?pF[0]+(pF.length>1?' ועוד '+(pF.length-1):''):'[תפקיד]')+'</div><div style="font-size:13px;color:#64748B">'+(nS||'[שם העסק]')+' · '+place+'</div></div></div><div style="display:flex;flex-wrap:wrap;gap:6px">'+tagH+'<span style="font-size:12px;font-weight:600;padding:5px 9px;border-radius:8px;background:#EAF1FE;color:#1257D6">₪[שכר] לשעה</span></div><div style="height:42px;border-radius:12px;background:#1257D6;color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center">שלח פרטים לעסק</div></div>';
+  body='<div class="up d1">'+fld(sk?'שם מלא':'שם העסק',nS,t1<nm.length)+fld(sk?'טלפון':'טלפון לפניות',pS,t1>=nm.length&&t2<ph.length,true)+'</div><div class="up d2"><div style="font-size:13px;font-weight:700;color:#64748B;margin:4px 0 8px">'+(sk?'ככה העסק יראה את הפנייה שלך':'ככה המודעה תיראה למועמדים')+'</div>'+pv+'</div><div class="up d3" style="margin-top:8px">'+c.checks.map(function(t,i){var on=S.checks[i];return '<button class="press" data-act="chk" data-v="'+i+'" style="width:100%;min-height:48px;border:none;background:transparent;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:start;padding:6px 2px"><span style="width:26px;height:26px;border-radius:8px;border:2px solid '+(on?'#1257D6':'#C3CDDD')+';background:'+(on?'#1257D6':'#fff')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s">'+(on?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path class="ck" pathLength="1" d="m5 12.5 4.5 4.5L19 7.5"/></svg>':'')+'</span><span style="font-size:15px;font-weight:500;color:#0B1630">'+t+'</span></button>';}).join('')+'</div>';
+ }
+ if(st===5){
+  var place2=S.city||'[עיר]';
+  var sum=sk?[['אזור',place2+', עד '+S.dist+' ק״מ'],['זמינות',pT.join(', ')||'—'],['תחומים',pF.join(', ')||'—']]:[['העסק',(S.cat||'—')+', '+place2],['מחפשים',pF.join(', ')||'—'],['משמרות',pT.join(', ')||'—']];
+  var tour=sk?[['החיפוש','כותבים תפקיד או עיר. הטווח כבר מוגדר.'],['בחירת יום','היום, מחר, השבוע או בהמשך.'],['שליחת פרטים','כפתור אחד, לעסק אחד.']]:[['הפניות שלכם','כמה פניות חדשות יש, במבט אחד.'],['חדשות ונפתחו','מה עוד לא ראיתם ומה כבר טיפלתם.'],['פתיחת פנייה','רואים פרטים ומתקשרים במגע.']];
+  body='<div class="pop" style="position:relative;width:64px;height:64px;border-radius:50%;background:#1257D6;display:flex;align-items:center;justify-content:center;box-shadow:0 14px 30px -12px rgba(18,87,214,.8);margin-bottom:16px"><span class="burst"></span><span class="burst b2"></span><svg style="position:relative" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path class="ck" pathLength="1" d="m5 12.5 4.5 4.5L19 7.5"/></svg></div><div class="up d1" style="background:#fff;border:1px solid #E4E9F2;border-radius:18px;padding:4px 14px">'+sum.map(function(m){return '<div style="display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid #EEF2F8;font-size:14px"><span style="color:#64748B">'+m[0]+'</span><span style="font-weight:600;text-align:left">'+m[1]+'</span></div>';}).join('')+'<div style="padding:10px 0;font-size:12px;color:#64748B">אפשר לשנות הכול מהפרופיל, מתי שרוצים.</div></div><div class="up d2" style="margin-top:16px"><div style="font-size:13px;font-weight:700;color:#64748B;margin-bottom:10px">בכניסה הראשונה נראה לך שלושה דברים</div>'+tour.map(function(t,i){return '<div style="display:flex;gap:12px;margin-bottom:10px"><span style="width:28px;height:28px;border-radius:50%;background:#EAF1FE;color:#1257D6;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+(i+1)+'</span><div><div style="font-weight:700;font-size:15px">'+t[0]+'</div><div style="font-size:13px;color:#3D4B66">'+t[1]+'</div></div></div>';}).join('')+'</div>';
+ }
+ var ok=!!c.ok;
+ var bars=[1,2,3,4].map(function(i){return '<span class="'+(st===i?'fillbar':'')+'" style="flex:1;height:5px;border-radius:3px;background:'+(st>=i?'#1257D6':'#E4E9F2')+';transition:background .35s"></span>';}).join('');
+ var nl=st===5?(sk?'לאפליקציה, עם סיור קצר':'לפרסום המודעה הראשונה'):(st===4?'סיום':'המשך');
+ var scrollTop=(view.querySelector('.scroll')||{}).scrollTop||0;
+ var html='<div style="position:absolute;inset:0;display:flex;flex-direction:column;background:#F7F9FC"><div style="background:#fff;padding:52px 16px 14px;border-bottom:1px solid #EEF2F8;display:flex;align-items:center;gap:12px"><button class="press" data-act="back" aria-label="חזרה" style="width:44px;height:44px;border-radius:12px;border:1px solid #E4E9F2;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B1630" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button><div style="flex-grow:1;display:flex;gap:5px">'+bars+'</div><span style="font-size:13px;font-weight:600;color:#64748B">'+(st===5?'סיום':st+' מתוך 4')+'</span></div>'+
+ '<div class="scroll" style="flex-grow:1;min-height:0"><div class="'+(anim?'inS':'')+'" style="padding:22px 20px 20px"><div style="font-weight:900;font-size:28px;line-height:1.12;letter-spacing:-.4px">'+c.title+'</div><div style="font-size:15px;line-height:1.55;color:#3D4B66;margin:6px 0 18px">'+c.sub+'</div>'+body+'</div></div>'+
+ '<div style="background:#fff;border-top:1px solid #EEF2F8;padding:12px 16px 28px;display:flex;flex-direction:column;gap:10px"><div class="'+(anim?'inS':'')+'" style="display:flex;gap:10px;background:#EEF4FF;border-radius:14px;padding:11px 12px"><svg class="glow" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M9 17.5h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V17.5h5.2V15.8c0-.8.4-1.5 1-2A6 6 0 0 0 12 3Z" fill="#1257D6" fill-opacity=".16" stroke="#1257D6" stroke-width="1.6"/></svg><div style="font-size:13px;line-height:1.5;color:#23324D"><b style="color:#0B1630">'+c.tipT+'</b> '+c.tipB+'</div></div><button class="press cta'+(ok?'':' off')+'" data-act="next" id="mainBtn" style="height:56px;border:none;border-radius:16px;background:'+(ok?'#1257D6':'#E4E9F2')+';color:'+(ok?'#fff':'#8A97AD')+';font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;cursor:'+(ok?'pointer':'not-allowed')+';box-shadow:'+(ok?'0 12px 24px -12px rgba(18,87,214,.9)':'none')+'">'+nl+' '+ARROW+'</button></div></div>';
+ if(!anim){html=html.replace(/ up d\d/g,'').replace(/class="up d\d"/g,'');}
+ if(quiet){html=html.replace(/class="ck"/g,'').replace(/ class="pop"/g,'').replace(/class="pop" /g,'');}
+ view.innerHTML=html;
+ var sc=view.querySelector('.scroll');if(sc&&!anim)sc.scrollTop=scrollTop;
+ var rc=document.getElementById('radc');if(rc&&S._nextR){requestAnimationFrame(function(){rc.setAttribute('r',S._nextR);S._prevR=S._nextR;});}
+ if(S.step===4&&S.ti<40){clearTimeout(S._tt);S._tt=setTimeout(function(){if(S.step!==4)return;S.ti++;render(false,true);},85);}
+}
+function goStep(k){S.step=k;if(k===4)S.ti=0;render(true);syncSide();}
+function act(a,v,k){
+ if(a==='next'){if(S.step===5){reset(S.role==='biz'?'biz':'');goStep(0);return;}if(S.step===0||cfg().ok)goStep(S.step+1);return;}
+ if(a==='back'){goStep(Math.max(0,S.step-1));return;}
+ if(a==='role'){S.role=v;S.city='';S.cat='';S.sel={};S.checks={};}
+ if(a==='s'){S[k]=v;}
+ if(a==='m'){S.sel[k+v]=!S.sel[k+v];}
+ if(a==='dist'){S.dist=+v;}
+ if(a==='chk'){S.checks[v]=!S.checks[v];}
+ render(false);
+}
+view.addEventListener('click',function(e){var b=e.target.closest('[data-act]');if(!b)return;if(e.isTrusted)stopAuto();act(b.dataset.act,b.dataset.v,b.dataset.k);});
+function syncSide(){[].forEach.call(stepsEl.children,function(li,i){li.classList.toggle('on',i===S.step);});}
+
+var playing=true,timer=null,q=[],slideT=null;
+function find(sel){return view.querySelector(sel);}
+function tapEl(el,cb){if(!el){cb&&cb();return;}var r=el.getBoundingClientRect(),s=document.getElementById('screen').getBoundingClientRect(),sx=s.width/366;cursor.style.opacity='1';cursor.style.left=((r.left+r.width/2-s.left)/sx)+'px';cursor.style.top=((r.top+r.height/2-s.top)/sx)+'px';setTimeout(function(){cursor.classList.remove('tap');void cursor.offsetWidth;cursor.classList.add('tap');var d=el.dataset;act(d.act,d.v,d.k);cb&&cb();},650);}
+function byText(t){return [].filter.call(view.querySelectorAll('[data-act]'),function(b){return b.dataset.v===t;})[0];}
+function script(){
+ var biz=S.role==='biz'||demoRole==='biz';
+ var s=[[2600,function(){S.slide=1;render(false);}],[2600,function(){S.slide=2;render(false);}],[2400,function(){tapEl(find('#mainBtn'));}],
+ [1600,function(){tapEl(find('[data-v="'+(biz?'biz':'seek')+'"]'));}],[1300,function(){tapEl(find('#mainBtn'));}]];
+ if(!biz)s=s.concat([[1500,function(){tapEl(byText('נתניה'));}],[1300,function(){tapEl(byText('5'));}],[1300,function(){tapEl(byText('20'));}],[1300,function(){tapEl(byText('10'));}],[1400,function(){tapEl(find('#mainBtn'));}],
+  [1500,function(){tapEl(byText('ערב'));}],[1000,function(){tapEl(byText('סופ״ש'));}],[1000,function(){tapEl(byText('בר'));}],[1000,function(){tapEl(byText('מלצרות'));}],[1300,function(){tapEl(find('#mainBtn'));}]]);
+ else s=s.concat([[1500,function(){tapEl(byText('בית קפה'));}],[1100,function(){tapEl(byText('נתניה'));}],[1300,function(){tapEl(find('#mainBtn'));}],
+  [1500,function(){tapEl(byText('מלצרות'));}],[1000,function(){tapEl(byText('בר'));}],[1000,function(){tapEl(byText('ערב'));}],[1000,function(){tapEl(byText('סופ״ש'));}],[1300,function(){tapEl(find('#mainBtn'));}]]);
+ s=s.concat([[4200,function(){tapEl(byText('0'));}],[1000,function(){tapEl(byText('1'));}],[1400,function(){tapEl(find('#mainBtn'));}],[5200,function(){tapEl(find('#mainBtn'));}],[1500,function(){cursor.style.opacity='0';}]]);
+ return s;
+}
+var demoRole='seek';
+function runQ(){if(!playing)return;if(!q.length)q=script();var it=q.shift();timer=setTimeout(function(){if(!playing)return;it[1]();runQ();},it[0]);}
+function startAuto(){playing=true;document.getElementById('playBtn').textContent='השהיה';runQ();}
+function stopAuto(){playing=false;clearTimeout(timer);cursor.style.opacity='0';document.getElementById('playBtn').textContent='המשך הדמו';}
+document.getElementById('playBtn').onclick=function(){playing?stopAuto():startAuto();};
+function restart(){stopAuto();q=[];reset('');goStep(0);setTimeout(startAuto,300);}
+document.getElementById('restartBtn').onclick=restart;
+document.getElementById('roleBtn').onclick=function(){demoRole=demoRole==='seek'?'biz':'seek';this.textContent=demoRole==='seek'?'הצג כעסק':'הצג כמחפש/ת עבודה';restart();};
+function jumpTo(i){stopAuto();q=[];var keepRole=demoRole;reset(keepRole);if(i>=2){S.city='נתניה';S.cat='בית קפה';}if(i>=3){S.sel={'t:ערב':1,'t:סופ״ש':1,'f:בר':1,'f:מלצרות':1};}if(i>=5){S.checks={0:1,1:1};}goStep(i);}
+render(true);syncSide();
+setTimeout(startAuto,600);
+})();
+</script>
+
+</body></html>

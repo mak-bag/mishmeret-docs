@@ -1,0 +1,475 @@
+/* BEGIN R1 =================================================================
+   Job Map — שכבת העיצוב · Designer · 26/09/2026
+   נמדד מול app.html 176,386 · md5 b8ae0ba8d8fb, ומול 19 המסכים של המוקאפ
+   שנקראו מה-DOM (לא מה-PDF ולא מהעין).
+
+   סדר ההדבקה: אחרי גוש הסגנון הקיים, בסוף — אחרי `.btn`, אחרי `.panel`
+   ואחרי בלוק המפה. כמה כללים כאן נשענים על סדר מקור.
+
+   מחלקות: רק אלה שבחוזה §3. אפס מחלקות חדשות.
+   מצבים דרך data-* ו-aria-*, לא דרך מחלקות-מצב.
+   ========================================================================= */
+
+
+/* ==========================================================================
+   1. טוקנים — מה שבאמת חסר, ולא מה שכבר קיים
+   --------------------------------------------------------------------------
+   **קראתי את :root הקיים לפני שכתבתי שורה.** רוב הטוקנים שבבריף §2
+   כבר בקובץ ובאותו ערך בדיוק: --brand #1257d6 · --bg #f5f7fa ·
+   --border #e3e8f0 · --accent-soft #e8efff · --muted #5b6b85 ·
+   --text #0d1b33 · --accent-solid-h #0e46ab. אין מה לשנות בהם.
+
+   **שלוש הערות על §2, ופירוט ב-DESIGN-NOTE-R1.md §1:**
+   א. `--navy:#0D1B33` — הערך הזה כבר קיים בקובץ בשם `--text`.
+      `--navy` הוא נייבי הוורדמארק, משמש ב---toast-bg ובלוגו, ובמצב
+      כהה הוא בכלל #dbe7ff (בהיר). **לא נגעתי בו.** טקסט ראשי =
+      `--text`, כפי שכל הקובץ כבר עושה.
+   ב. `--shadow` / `--shadow-lift` בבריף הם חד-שכבתיים. שבקובץ הם
+      תלת-שכבתיים ומכוילים. **השארתי את הקיימים** והוספתי רק --shadow-cta.
+   ג. `--green` בבריף #1B7A46 מול #0d7a55 בקובץ. ההפרש לא נראה בעין
+      ו---green משמש כבר בארבעה מקומות. **לא שיניתי.** --green-soft
+      זהה למעשה (#e3f4ed מול #E3F5EC).
+   ========================================================================== */
+
+:root{
+  /* **‼ הערך שבבריף, #8A97AD, נמדד 2.95 על לבן ו-2.75 על --bg.**
+     הוא אינו יכול לשאת טקסט במצב בהיר. הכהיתי עד הסף, לפי הכלל
+     שאתה עצמך כתבת: 4.86 על --surface ו-4.53 על --bg.
+     **ובמצב כהה #8A97AD דווקא תקין** — 5.88 על המשטח ו-6.42 על
+     הרקע — ולכן שם הוא נשאר כלשונו. הערך של המייסד הוא אפור של
+     מצב כהה שהגיע למוקאפ בהיר. */
+  --muted-2:#687283;
+  --r-l:20px;                 /* כרטיס מודעה, אריח מספר */
+  --r-sheet:28px;             /* ראה §7 — מאוחד מ-24/28 */
+  --shadow-cta:0 10px 22px rgba(18,87,214,.30);
+
+  /* קטגוריות. **הערכים אינם אלה שבמוקאפ, וזה מכוון — ראה §2.**
+     לבן על כל אחד מהם נמדד ≥ 4.5, ולכן אותו צבע משרת גם אריח 60px
+     וגם תג 24px בלי חריגה. */
+  --cat-food:#b75e24;
+  --cat-retail:#1257d6;
+  --cat-warehouse:#6d4ae0;
+  --cat-building:#a5690c;
+  --cat-cleaning:#0b8475;
+  --cat-delivery:#1c8348;
+  --cat-security:#c84970;
+
+  /* טבעת על משטח צבוע. בהיר: אין צורך — הרקע בהיר והמילוי כהה. */
+  --cat-ring:0 0 0 0 transparent;
+}
+
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --muted-2:#8a97ad;
+    --shadow-cta:0 10px 22px rgba(0,0,0,.55);
+    /* **מדוד:** על משטח כהה (#111a2d) המילוי של retail נותן 2.78
+       ושל warehouse 3.06 — מילוי שאינו נבדל מהמשטח. אין כחול שעומד
+       בו-זמנית ב"לבן עליו ≥4.5" וב"הוא עצמו ≥3 מול משטח כהה"; שני
+       התנאים מושכים לכיוונים הפוכים. לכן בכהה ההפרדה נעשית בטבעת
+       ולא בצבע — כך צבע הקטגוריה נשאר אותו צבע בשתי הערכות. */
+    --cat-ring:inset 0 0 0 1px rgba(255,255,255,.16);
+  }
+}
+:root[data-theme="dark"]{
+  --muted-2:#8a97ad;
+  --shadow-cta:0 10px 22px rgba(0,0,0,.55);
+  --cat-ring:inset 0 0 0 1px rgba(255,255,255,.16);
+}
+
+/* מיפוי data-cat → טוקן. שתי שורות במקום 14 כללים.
+   `any` הוא היחיד בלי מילוי: מסגרת מקווקוות, לפי המוקאפ. */
+[data-cat="food"]     {--cat:var(--cat-food)}
+[data-cat="retail"]   {--cat:var(--cat-retail)}
+[data-cat="warehouse"]{--cat:var(--cat-warehouse)}
+[data-cat="building"] {--cat:var(--cat-building)}
+[data-cat="cleaning"] {--cat:var(--cat-cleaning)}
+[data-cat="delivery"] {--cat:var(--cat-delivery)}
+[data-cat="security"] {--cat:var(--cat-security)}
+[data-cat="any"]      {--cat:var(--muted)}
+
+
+/* ==========================================================================
+   2. .cat-tile — אריח קטגוריה
+   --------------------------------------------------------------------------
+   המוקאפ מציג שני גדלים: 54px/רדיוס 17 בבית, 60px/רדיוס 19 בשאלות.
+   **לא פתחתי מחלקת גודל** — הגודל הוא `--tile`, והרדיוס נגזר ממנו
+   ביחס שנמדד (17/54 = 19/60 = 0.315). כך שני המסכים מקבלים בדיוק
+   את המוקאפ בלי מחלקה שאינה בחוזה.
+   ========================================================================== */
+.cat-tile{
+  --tile:54px;
+  inline-size:var(--tile); block-size:var(--tile);
+  border-radius:calc(var(--tile) * .315);
+  display:inline-flex; align-items:center; justify-content:center;
+  background:var(--cat); color:var(--on-accent);
+  font-size:calc(var(--tile) * .44); font-weight:800; line-height:1;
+  border:0; padding:0; cursor:pointer; position:relative;
+  /* הצל צבוע בצבע הקטגוריה עצמה, כמו במוקאפ. */
+  box-shadow:var(--cat-ring), 0 6px 14px -4px var(--cat);
+  transition:transform .14s var(--ease-soft), box-shadow .18s var(--ease-soft);
+}
+.cat-tile:active{transform:scale(.96)}
+.cat-tile:focus-visible{outline:0; box-shadow:var(--cat-ring), var(--ring)}
+
+/* `any` — מסגרת בלבד. הטקסט הוא מילה ולא אות, ולכן קטן יותר. */
+.cat-tile[data-cat="any"]{
+  background:none; color:var(--accent);
+  border:1.6px dashed var(--border-strong);
+  font-size:13px; box-shadow:none;
+}
+
+/* נבחר: טבעת לבנה ואז טבעת מותג, בדיוק כמו במוקאפ, ועליה סימן ✓.
+   `aria-pressed` ולא מחלקת-מצב. */
+.cat-tile[aria-pressed="true"]{
+  box-shadow:var(--cat-ring), 0 0 0 3px var(--surface), 0 0 0 5.4px var(--accent-solid);
+}
+/* ה-✓ יושב על ::before ולא על ::after — **נמדד בהתנגשות:** כששתי
+   התכונות נכחו יחד (`data-soon` על אריח שנבחר קודם), שני הכללים
+   כתבו לאותו ::after והתמזגו לעיגול כחול עם המילה "בקרוב" בתוכו.
+   שני מצבים, שני פסאודו. */
+.cat-tile[aria-pressed="true"]::before{
+  content:"✓";
+  position:absolute; inset-block-start:-6px; inset-inline-end:-6px;
+  inline-size:23px; block-size:23px; border-radius:50%;
+  background:var(--accent-solid); color:var(--on-accent);
+  border:1.6px solid var(--surface);
+  font-size:11px; font-weight:800; line-height:19.8px; text-align:center;
+}
+/* אריח "בקרוב" אינו לחיץ, ולכן גם אם הוא נושא aria-pressed מסבב
+   קודם — הוא לא מציג ✓ ולא טבעת. */
+.cat-tile[data-soon]::before{content:none}
+
+/* קטגוריה בלי מודעות — §4.3 בבריף. לא לחיצה, ולא מתחזה ללחיצה.
+   המילה "בקרוב" מגיעה מ-terms; הכלל רק מפנה לה מקום.
+
+   **שתי גרסאות נפסלו במדידה לפני זו שכאן:**
+
+   1. `opacity:.42` — `opacity` על ההורה יוצרת קבוצה, והילד אינו
+      יכול לחרוג ממנה. תווית "בקרוב" ירדה יחד עם האריח לכ-1.8:1,
+      ואי אפשר לתקן את זה ב-opacity על הילד.
+   2. **גוון רך בצבע הקטגוריה, והאות בצבע המלא.** בבהיר זה עבד
+      יפה — 3.89 עד 5.22. **בכהה זה בלתי אפשרי, לא קשה:** חיפשתי
+      את כל המינונים בין 2% ל-26% של הצבע מעל `--bg`, ועבור
+      `retail` **אין ולו אחד** שנותן 3:1 בין הצבע לגוון שלו —
+      הכחול כבר כהה, והגוון שלו לא יכול להתרחק ממנו מספיק.
+      `warehouse` הגיע ל-3.2 רק במינון 6.5%, ששם הגוון כבר
+      1.05 מול הרקע, כלומר משטח בלתי נראה.
+
+   **לכן "בקרוב" הוא נייטרלי בשתי הערכות.** וזו גם הקריאה הנכונה
+   מבחינת תוכן: קטגוריה שאין מאחוריה מודעות לא צריכה לפרסם את
+   הצבע שלה. נמדד: 4.79 בבהיר ו-6.24 בכהה.
+
+   **וזו הסיבה שאין טוקני `--cat-*-soft`.** הם היו קיימים כדי
+   לשרת את המצב הזה בלבד; משנפסל, הם היו נשארים שבעה טוקנים
+   בלי צרכן — בדיוק מה ש---tiles-filter היה בסבב הקודם. */
+.cat-tile[data-soon]{
+  background:var(--surface-2); color:var(--muted);
+  box-shadow:none; cursor:default; pointer-events:none;
+}
+.cat-tile[data-soon]::after{
+  content:attr(data-soon);
+  position:absolute; inset-block-end:-15px; inset-inline:0;
+  font-size:10.5px; font-weight:700; color:var(--muted-2);
+  text-align:center; line-height:1;
+}
+/* לאריח "בקרוב" יש תווית מתחתיו — הרשת שמכילה אותו צריכה 15px
+   מתחת לשורה. זו דרישת פריסה, לא דרישת רכיב, ולכן היא אצל המפתח. */
+
+
+/* ==========================================================================
+   3. .cat-badge — ריבוע־אות
+   --------------------------------------------------------------------------
+   נמדד במוקאפ בשלושה גדלים: 24px (סיכת מפה), 31px (על תמונת כרטיס),
+   34px (ראש מודעה), 44px (שורת פנייה). אותו יחס רדיוס: ~0.30.
+   **כאן הטקסט קטן — 13px/800 — ולכן זה הרכיב שחייב את 4.5.**
+   ========================================================================== */
+.cat-badge{
+  --badge:24px;
+  inline-size:var(--badge); block-size:var(--badge);
+  border-radius:calc(var(--badge) * .30);
+  display:inline-flex; align-items:center; justify-content:center;
+  background:var(--cat); color:var(--on-accent);
+  font-size:calc(var(--badge) * .54); font-weight:800; line-height:1;
+  flex:none; box-shadow:var(--cat-ring);
+}
+/* מעל תמונה — טבעת לבנה שמפרידה אותו מהצילום, כמו במוקאפ. */
+.cat-badge[data-on-media]{border:1.6px solid var(--surface)}
+
+
+/* ==========================================================================
+   4. .listing-card — כרטיס מודעה
+   --------------------------------------------------------------------------
+   שתי פריסות, שתיהן במוקאפ:
+     row   252x178, מדיה 250x110   (בית — גלילה אופקית)
+     grid  173x189, מדיה 171x120   (שמורים — שתיים בשורה)
+   **§4.2: אין תמונות מלאי.** עד שלב 2 המדיה היא גרדיאנט בצבע
+   הקטגוריה. זה לא placeholder זמני — זו ההחלטה: עדיף משטח שאומר
+   "קטגוריה" מאשר צילום של מסעדה שאינה המסעדה.
+   ========================================================================== */
+.listing-card{
+  display:flex; flex-direction:column; overflow:hidden;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r-l); text-align:start; text-decoration:none;
+  color:inherit; position:relative; padding:0;
+  transition:border-color .16s var(--ease-soft), transform .14s var(--ease-soft);
+}
+.listing-card:active{transform:scale(.99)}
+.listing-card[data-layout="row"] {inline-size:252px; flex:none}
+.listing-card[data-layout="grid"]{inline-size:100%}
+
+.lc-media{
+  block-size:110px; flex:none; position:relative;
+  background:linear-gradient(140deg, var(--cat) 0%, color-mix(in srgb, var(--cat) 62%, #000) 100%);
+  display:flex; align-items:flex-start; justify-content:space-between;
+  padding:10px;
+}
+.listing-card[data-layout="grid"] .lc-media{block-size:120px}
+/* נסיגה לדפדפן בלי color-mix: מילוי אחיד בצבע הקטגוריה.
+   הגרדיאנט הוא עידון, לא תנאי לקריאות. */
+@supports not (background:color-mix(in srgb,#000 50%,#fff)){
+  .lc-media{background:var(--cat)}
+}
+
+.lc-body{padding:11px 13px 13px; display:flex; flex-direction:column; gap:3px; min-inline-size:0}
+.lc-rate{font-size:17px; font-weight:800; letter-spacing:-.4px; color:var(--text)}
+.lc-meta{font-size:12.5px; color:var(--muted); line-height:1.45;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+
+/* תגית על המדיה. שני גוונים בלבד, לפי החוזה. */
+.lc-tag{
+  font-size:11px; font-weight:700; line-height:1;
+  padding:5px 8px; border-radius:8px; white-space:nowrap;
+}
+.lc-tag[data-tone="today"] {background:var(--surface); color:var(--green)}
+.lc-tag[data-tone="update"]{background:var(--accent-solid); color:var(--on-accent)}
+/* כרטיס שהעסק עדכן — קו מותג, כמו במוקאפ (שמורים, הכרטיס הרביעי) */
+.listing-card:has(.lc-tag[data-tone="update"]){border-color:var(--accent-solid); border-width:1.6px}
+
+
+/* ==========================================================================
+   5. .tabbar — ניווט תחתון
+   --------------------------------------------------------------------------
+   נמדד 76px גובה, לבן, קו עליון, padding 0 16px 14px.
+   ה-14px התחתון הוא מקום לפס הבית של iOS; מוחלף כאן ב-safe-area
+   האמיתי, עם 14px כרצפה.
+   ========================================================================== */
+.tabbar{
+  position:fixed; inset-block-end:0; inset-inline:0; z-index:40;
+  display:grid; grid-template-columns:repeat(4,1fr);
+  background:var(--surface); border-block-start:1px solid var(--border);
+  padding:0 16px max(14px, env(safe-area-inset-bottom));
+  block-size:auto;
+}
+.tabbar a{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:4px; padding:11px 0 7px; min-block-size:44px;
+  font-size:11.5px; font-weight:600; color:var(--muted);
+  text-decoration:none; -webkit-tap-highlight-color:transparent;
+}
+.tabbar a .icon{inline-size:22px; block-size:22px}
+.tabbar a[aria-current="page"]{color:var(--accent)}
+
+
+/* ==========================================================================
+   6. .seg — בורר מקטעים
+   --------------------------------------------------------------------------
+   נמדד: מיכל 41px, רקע --bg, רדיוס 12, padding 3.
+   פעיל: לבן, רדיוס 10, צל 0 1px 4px rgba(13,27,51,.1).
+   **`.seg` כבר קיים בקובץ** (מתג רשימה/מפה) עם `.seg-b`. הכלל כאן
+   מרחיב אותו ל-button ישיר, כדי שהמפתח לא יצטרך `.seg-b` בכל מקום —
+   בלי לשבור את הקיים, כי `.seg-b` ספציפי יותר.
+   ========================================================================== */
+.seg{
+  display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:0;
+  background:var(--bg); border:1px solid var(--border);
+  border-radius:var(--r-s); padding:3px; inline-size:100%;
+}
+.seg > button{
+  border:0; background:none; cursor:pointer;
+  padding:9px 6px; border-radius:10px; min-block-size:35px;
+  font-size:13px; font-weight:600; color:var(--muted);
+  font-family:inherit; transition:background .16s var(--ease-soft), color .16s;
+}
+.seg > button[aria-pressed="true"]{
+  background:var(--surface); color:var(--text); font-weight:700;
+  box-shadow:0 1px 4px rgba(13,27,51,.10);
+}
+
+
+/* ==========================================================================
+   7. .sheet — גיליון תחתון
+   --------------------------------------------------------------------------
+   המוקאפ מציג שני רדיוסים: 28 בסינון ו-24 בעמוד המודעה.
+   **איחדתי ל-28.** שני רדיוסים לאותו רכיב הם בדיוק "רדיוס שונה בכל
+   היררכיה" — הדבר שהתיק שלי אוסר. עמוד המודעה אינו `.sheet` אלא
+   משטח הדף, והוא יכול לקבל את 24 שלו בנפרד אם תרצה.
+   ========================================================================== */
+.sheet{
+  position:fixed; inset-inline:0; inset-block-end:0; z-index:60;
+  background:var(--surface); color:var(--text);
+  border-radius:var(--r-sheet) var(--r-sheet) 0 0;
+  box-shadow:var(--shadow-lift);
+  padding:10px 20px max(22px, env(safe-area-inset-bottom));
+  max-block-size:88vh; overflow-y:auto;
+  transform:translateY(100%); visibility:hidden;
+  transition:transform .26s var(--ease), visibility 0s .26s;
+}
+.sheet[data-open]{transform:translateY(0); visibility:visible; transition-delay:0s}
+.sheet-handle{
+  inline-size:38px; block-size:4px; border-radius:999px;
+  background:var(--border-strong); margin:0 auto 12px;
+}
+/* §5 בבריף — בלי אנימציה למי שביקש. */
+@media (prefers-reduced-motion:reduce){
+  .sheet{transition:visibility 0s}
+}
+
+
+/* ==========================================================================
+   8. .choice — כפתור בחירה עם כותרת ושורת משנה
+   --------------------------------------------------------------------------
+   נמדד 82x64 רדיוס 16 (שאלות) ו-82x58 רדיוס 14 (סינון), וגם
+   111x48 רדיוס 14 לצ׳יפ זמן הגעה. אותו רכיב, רוחב מהרשת.
+   נבחר: רקע --accent-soft, מסגרת 1.6px מותג, טקסט --accent-2.
+   ========================================================================== */
+.choice{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:2px; min-block-size:56px; padding:8px 6px;
+  background:var(--surface); color:var(--text);
+  border:1px solid var(--border); border-radius:14px;
+  font-family:inherit; font-size:14px; font-weight:700; cursor:pointer;
+  transition:background .16s var(--ease-soft), border-color .16s;
+}
+.choice small{font-size:11.5px; font-weight:600; color:var(--muted); line-height:1.3}
+.choice[aria-pressed="true"]{
+  background:var(--accent-soft); border-color:var(--accent-solid); border-width:1.6px;
+  color:var(--accent-2);
+}
+.choice[aria-pressed="true"] small{color:var(--accent-2)}
+.choice:focus-visible{outline:0; box-shadow:var(--ring)}
+
+
+/* ==========================================================================
+   9. .ring-time — טבעת שעון
+   --------------------------------------------------------------------------
+   נמדד במוקאפ: svg 66x66, viewBox 132, r=54, stroke-width 14,
+   מסילה --border, קשת --brand.
+   **RTL:** §5 בבריף — הכיוון נמדד ולא מנוחש. שעון הוא מוסכמה
+   פיזית ולא כיוון קריאה: 0° למעלה ובכיוון השעון בשתי השפות.
+   לכן `rotate(-90deg)` ו**בלי** היפוך ב-RTL. זו החלטה, ואני מסמן
+   אותה כדי שלא תתהפך בטעות בסבב הבא.
+   הערכים --from ו---to הם מעלות (0–360), והמפתח מחשב אותם מהשעות.
+   ========================================================================== */
+.ring-time{
+  --from:0deg; --to:180deg; --ring-size:66px; --ring-w:7px;
+  inline-size:var(--ring-size); block-size:var(--ring-size);
+  border-radius:50%; flex:none; position:relative;
+  /* `from calc(var(--from) - 90deg)` מזיז את אפס המעלות לשעה 12.
+     **בלי `transform:rotate` על האלמנט** — הניסיון הראשון סובב את
+     האלמנט וחייב סיבוב-נגד לכל ילד, וזה נשבר ברגע שמכניסים טקסט. */
+  background:
+    conic-gradient(from calc(var(--from) - 90deg),
+      var(--accent) 0deg,
+      var(--accent) calc(var(--to) - var(--from)),
+      var(--border) calc(var(--to) - var(--from)),
+      var(--border) 360deg);
+  /* **`closest-side` הוא התיקון.** בלעדיו הגרדיאנט נמדד ל-farthest-corner
+     (כ-70% מהקופסה), ו-`calc(50% - w)` מצביע על רדיוס שגוי — נמדד
+     בעין: החור לא נחתך והטבעת יצאה פרוסת עוגה. עם closest-side,
+     100% = מחצית הקופסה, והחשבון נכון. */
+  -webkit-mask:radial-gradient(circle closest-side,
+        transparent calc(100% - var(--ring-w)), #000 calc(100% - var(--ring-w) + .5px));
+          mask:radial-gradient(circle closest-side,
+        transparent calc(100% - var(--ring-w)), #000 calc(100% - var(--ring-w) + .5px));
+}
+
+
+/* ==========================================================================
+   10. .fact — אריח עובדה
+   --------------------------------------------------------------------------
+   נמדד 111x60, רדיוס 14, רקע שקוף, מסגרת --border. שלושה בשורה.
+   **§4.1 — כלל היושר:** אריח תחבורה ציבורית אינו מספר אלא קישור.
+   `.fact[data-link]` מקבל צבע מותג וחץ; אין בו `.fact-v` עם דקות.
+   הליכה ורכב מוצגים עם "≈", והמפתח מייצר את המחרוזת.
+   ========================================================================== */
+.fact{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:2px; min-block-size:60px; padding:9px 8px;
+  border:1px solid var(--border); border-radius:14px;
+  background:none; text-align:center;
+}
+.fact-v{font-size:15.5px; font-weight:800; letter-spacing:-.3px; color:var(--text);
+  font-variant-numeric:tabular-nums}
+.fact-k{font-size:11.5px; font-weight:600; color:var(--muted); line-height:1.3}
+/* קישור ולא מספר. יעד המגע הוא כל האריח. */
+.fact[data-link]{
+  cursor:pointer; color:var(--accent); text-decoration:none;
+  border-color:var(--border-strong);
+}
+.fact[data-link] .fact-v{font-size:13.5px; color:var(--accent)}
+
+
+/* ==========================================================================
+   11. .status-steps — נשלח → נפתח → העסק פנה
+   --------------------------------------------------------------------------
+   נמדד 110x66 לכל שלב, רדיוס 16.
+   done: מותג מלא, לבן. todo: --bg, --muted.
+   **now אינו במוקאפ** — גזרתי אותו משפת המערכת: רקע --accent-soft
+   ומסגרת מותג, בדיוק כמו `.choice[aria-pressed]`. כך "עכשיו" נקרא
+   כמצב פעיל ולא כמצב שהושלם.
+   ========================================================================== */
+.status-steps{
+  display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:8px;
+  list-style:none; padding:0; margin:0;
+}
+.status-steps > li{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:4px; min-block-size:66px; padding:10px 6px; border-radius:var(--r);
+  font-size:12.5px; font-weight:700; text-align:center;
+  background:var(--bg); color:var(--muted); border:1px solid transparent;
+}
+.status-steps > li::before{content:"·"; font-size:18px; line-height:1; font-weight:800}
+.status-steps > li[data-state="done"]{background:var(--accent-solid); color:var(--on-accent); border-color:transparent}
+.status-steps > li[data-state="done"]::before{content:"✓"; font-size:13px}
+.status-steps > li[data-state="now"]{background:var(--accent-soft); color:var(--accent-2); border-color:var(--accent-solid)}
+
+
+/* ==========================================================================
+   12. .stat-tile — אריח מספר בלוח העסק
+   --------------------------------------------------------------------------
+   נמדד 174x105, רדיוס 20. שלושה גוונים במוקאפ: מותג מלא, רך, ולבן.
+   **§4.5 — אין סכומי כסף כאן. לעולם.** הכלל הזה אינו CSS ואי אפשר
+   לאכוף אותו בסגנון; הוא רשום כאן כדי שיישאר לעיני מי שקורא.
+   ========================================================================== */
+.stat-tile{
+  display:flex; flex-direction:column; justify-content:space-between;
+  min-block-size:105px; padding:14px 15px; border-radius:var(--r-l);
+  background:var(--surface); border:1px solid var(--border); color:var(--text);
+}
+.stat-tile .st-k{font-size:12.5px; font-weight:600; color:var(--muted); line-height:1.35}
+.stat-tile .st-v{font-size:30px; font-weight:800; letter-spacing:-1px; line-height:1;
+  font-variant-numeric:tabular-nums}
+.stat-tile .st-n{font-size:11.5px; font-weight:600; color:var(--muted-2)}
+.stat-tile[data-tone="primary"]{background:var(--accent-solid); border-color:transparent; color:var(--on-accent)}
+.stat-tile[data-tone="primary"] .st-k,
+.stat-tile[data-tone="primary"] .st-n{color:rgba(255,255,255,.82)}
+.stat-tile[data-tone="soft"]{background:var(--accent-soft); border-color:transparent; color:var(--accent-2)}
+.stat-tile[data-tone="soft"] .st-k,
+.stat-tile[data-tone="soft"] .st-n{color:var(--accent-2); opacity:.78}
+
+
+/* ==========================================================================
+   13. .board-footer — שורת "משמרת היא לוח מודעות"
+   --------------------------------------------------------------------------
+   **‼ השורה הזו אינה מופיעה באף אחד מ-19 מסכי המוקאפ.** חיפשתי
+   בטקסט של כל המסכים. הבריף §4.4 דורש אותה בכרטיס המודעה, במסך
+   השליחה ובפניות — וצודק: זו האמירה שמחזיקה את "חברת לידים".
+   עיצבתי אותה קטנה ושקטה בכוונה: היא הצהרה משפטית, לא הודעה.
+   ========================================================================== */
+.board-footer{
+  font-size:11px; line-height:1.5; color:var(--muted-2);
+  text-align:center; padding:14px 18px 0; margin:0 auto;
+  max-inline-size:34ch; text-wrap:balance;
+}
+
+/* END R1 =================================================================== */

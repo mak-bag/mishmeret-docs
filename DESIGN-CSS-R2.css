@@ -1,0 +1,338 @@
+/* BEGIN R2 =================================================================
+   סבב S — לולאת החזרה · Designer · 28/09/2026
+   שש המחלקות שאושרו ב-ROUND-S §8 ("למעצב — החוזה מאושר").
+   נמדד מול app.html 228,704 · md5 e02a4ff89b69 (beta-5).
+
+   מיקום ההדבקה: בסוף גוש הסגנון, אחרי בלוק R1.
+   `.tag-new` חייב לשבת אחרי `.tag` — ראה §3.
+
+   **אפס hex חדש.** כל צבע הוא טוקן קיים.
+   **שתי אנימציות חדשות בלבד** (§5 בביקורת שלי): נדנוד הפעמון,
+   והבהוב השלד. "פופ" לכוכב משתמש ב-`@keyframes pop` הקיים.
+   ========================================================================= */
+
+
+/* ==========================================================================
+   1. .bell — פעמון בכותרת
+   --------------------------------------------------------------------------
+   יושב ליד `.avatar` (40px, רדיוס 13). הפעמון עצמו 44px כמו
+   `.round-btn`, כי הוא יעד מגע ולא קישוט.
+
+   **המונה נחסם ב-`9+`** (ההכרעה שלך, §8ד). התקרה בשרת היא 8 ליום,
+   ולכן שבוע בלי פתיחה מגיע ל-56. שני תווים לכל היותר = רוחב התג
+   קבוע, והכותרת לא זזה כשהמספר עובר לדו-ספרתי.
+   **המפתח כותב `data-count="9+"` בעצמו** — חיתוך מספר אינו עבודת CSS.
+   ========================================================================== */
+.bell{
+  position:relative; inline-size:44px; block-size:44px;
+  border:0; border-radius:14px; background:none; color:var(--accent);
+  display:inline-flex; align-items:center; justify-content:center;
+  cursor:pointer; flex:none; -webkit-tap-highlight-color:transparent;
+}
+.bell .icon{inline-size:21px; block-size:21px}
+.bell:active{background:var(--surface-2)}
+.bell:focus-visible{outline:0; box-shadow:var(--ring)}
+
+/* התג. `--accent-solid` ולא `--accent`: לבן על מלא, ובכהה `--accent`
+   הוא תכלת שנותן 2.77 ללבן. זה הבאג שחזר שלוש פעמים בסבבים קודמים. */
+.bell[data-count]::after{
+  content:attr(data-count);
+  position:absolute; inset-block-start:4px; inset-inline-end:3px;
+  min-inline-size:18px; block-size:18px; padding:0 5px;
+  border-radius:999px; box-sizing:border-box;
+  background:var(--accent-solid); color:var(--on-accent);
+  border:2px solid var(--surface);
+  font-size:10.5px; font-weight:800; line-height:14px; text-align:center;
+  font-variant-numeric:tabular-nums;
+}
+/* אפס התראות — אין תג. `data-count` פשוט לא נפלט. */
+
+/* נדנוד חד-פעמי, לא לולאה. **זו אנימציה שמדווחת על אירוע אמיתי**
+   (התראה הגיעה), ולכן היא מותרת לפי הקו האתי ב-R1b §3.
+   ה-JS מסיר את `data-nudge` אחרי 400ms; ה-CSS לא לולאתי בכוונה,
+   כדי ששכחה של המפתח לא תיצור תנועה אינסופית. */
+@keyframes bellNudge{
+  20%{transform:rotate(-11deg)} 40%{transform:rotate(8deg)}
+  60%{transform:rotate(-5deg)}  80%{transform:rotate(2deg)}
+ 100%{transform:none}
+}
+.bell[data-nudge] .icon{
+  animation:bellNudge .4s var(--ease-soft) 1;
+  transform-origin:50% 22%;   /* נקודת התלייה של פעמון, לא המרכז */
+}
+
+
+/* ==========================================================================
+   2. .notif — שורת התראה
+   --------------------------------------------------------------------------
+   שני סוגים בלבד, לפי §1 בסבב: `new_shift` ו-`opened`.
+   **הלא-נקראה מסומנת ברקע, לא בנקודה** — נקודה נוספת על מסך שכולו
+   התראות היא רעש; הרקע אומר את אותו הדבר בלי אלמנט נוסף.
+   ========================================================================== */
+.notif{
+  display:flex; align-items:flex-start; gap:11px;
+  padding:13px 14px; border-radius:var(--r-s);
+  background:var(--surface); border:1px solid var(--border);
+  margin-top:8px; text-decoration:none; color:inherit;
+  transition:background .16s var(--ease-soft);
+}
+.notif:active{background:var(--surface-2)}
+.notif[data-unread]{background:var(--accent-soft); border-color:transparent}
+.notif .icon{inline-size:20px; block-size:20px; flex:none; margin-block-start:1px;
+  color:var(--muted)}
+.notif[data-unread] .icon{color:var(--accent)}
+/* `opened` הוא רגע התגמול (§1 בסבב) — האייקון שלו מקבל את הכחול
+   גם אחרי שנקראה, כי זה מה שהמשתמש חוזר לחפש. */
+.notif[data-kind="opened"] .icon{color:var(--accent)}
+.notif-b{display:flex; flex-direction:column; gap:2px; min-inline-size:0; flex:1}
+.notif-t{font-size:14px; font-weight:700; line-height:1.35}
+.notif-s{font-size:12.5px; color:var(--muted); line-height:1.4;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.notif-w{font-size:11.5px; color:var(--muted); flex:none;
+  font-variant-numeric:tabular-nums}
+
+
+/* ==========================================================================
+   3. .tag-new — תג "חדש"
+   --------------------------------------------------------------------------
+   **מחלקה נפרדת ולא `.tag`, ובכוונה.** `.tag` הקיים משתמש במחלקות
+   מצב (`.tag.today`, `.tag.hot`, `.tag.done`) — אמנה שקדמה לחוזה
+   הנוכחי. תג "חדש" הוא רכיב חדש ולכן הוא נכנס לאמנת ה-`data-*`.
+   **חייב לשבת אחרי `.tag` בקובץ**: אם מרקאפ יישא בטעות את שתיהן,
+   הסגוליות שווה והסדר מכריע.
+
+   תכלת ולא אדום ולא מהבהב — ההוראה שלך ב-§6.
+   ========================================================================== */
+.tag-new{
+  display:inline-flex; align-items:center;
+  font-size:11px; font-weight:800; line-height:1;
+  padding:5px 9px; border-radius:8px; white-space:nowrap;
+  background:var(--accent-solid); color:var(--on-accent);
+}
+/* על המדיה של הכרטיס (המיפוי שאישרת): טבעת לבנה שמפרידה מהתמונה
+   או מהמשטח התכלת. אותו פתרון של `.cat-badge[data-on-media]`. */
+.tag-new[data-on-media]{border:1.6px solid var(--surface)}
+
+/* המסגרת העדינה על כרטיס "חדש" — §6 בבריף. על הכרטיס, לא על התג. */
+.listing-card:has(.tag-new){border-color:var(--accent-solid)}
+
+
+/* ==========================================================================
+   4. .stars — שורת דירוג
+   --------------------------------------------------------------------------
+   **המילוי משתקף ב-RTL, ובמכוון — ובניגוד ל-`.ring-time`.**
+   שורת כוכבים היא **גודל**, וגודל משתקף (כמו פס התקדמות).
+   `.ring-time` היא **מוסכמה פיזית** של שעון ואינה משתקפת.
+   שני הרכיבים שכנים ב-`app.html`, ולכן שניהם נושאים את ההערה הזו —
+   אחרת מישהו "יתקן" אחד מהם בסבב הבא. (§8 בביקורת שלי.)
+
+   **המפתח מזין `style="--v:4.8"`.** `attr()` אינו נתמך לערכים
+   מספריים, ולכן `data-value` קיים לטענות ולבדיקה בלבד.
+
+   **הכוכב בכחול ולא בזהב** — "כחול ולבן בלבד" (המייסד, R1b).
+   ========================================================================== */
+.stars{
+  --v:0;
+  position:relative; display:inline-block; direction:rtl;
+  font-size:15px; line-height:1; letter-spacing:1.5px;
+  color:var(--muted-2);
+  font-variant-numeric:tabular-nums;
+}
+.stars::before{content:"★★★★★"}
+.stars::after{
+  content:"★★★★★";
+  position:absolute; inset-block-start:0; inset-inline-start:0;
+  color:var(--accent); overflow:hidden; white-space:nowrap;
+  inline-size:calc(var(--v) / 5 * 100%);
+}
+
+/* ---------- מצב קליט ----------
+   יעד מגע 44px לכוכב — הדרישה שלך, וגם המינימום שלנו.
+   `pop` הוא ה-keyframes **הקיים** (הלב של "שמור"), במשך קצר יותר. */
+.stars[data-input]{
+  display:inline-flex; gap:2px; font-size:0; letter-spacing:0;
+  color:inherit;
+}
+.stars[data-input]::before,
+.stars[data-input]::after{content:none}
+.stars[data-input] button{
+  inline-size:44px; block-size:44px; padding:0; border:0; background:none;
+  cursor:pointer; font-size:26px; line-height:1; color:var(--muted-2);
+  -webkit-tap-highlight-color:transparent;
+  transition:color .12s var(--ease-soft);
+}
+.stars[data-input] button[aria-checked="true"]{color:var(--accent)}
+.stars[data-input] button:active{animation:pop .18s var(--ease-soft)}
+.stars[data-input] button:focus-visible{outline:0; box-shadow:var(--ring); border-radius:10px}
+
+
+/* ==========================================================================
+   5. .tier — תג מעמד
+   --------------------------------------------------------------------------
+   ארבע רמות, ו**אף אחת אינה כחול מלא** — ההכרעה שלך ב-§8א.
+   כחול מלא שמור ל-CTA (פון רסטורף, R1b §2), ובלוח של 20 כרטיסים
+   תג מלא היה יוצר עד 20 משטחים שמתחרים בו.
+
+   **ואין ✓ על `top`.** ✓ הוא אימות בלבד (`.vr`), וזו ההכרעה שלך
+   באותו סעיף. `top` דורש ממילא רמה 2, ולכן ה-✓ כבר מופיע ליד שם
+   העסק — להוסיף אותו גם לתג זה לומר את אותו הדבר פעמיים.
+   ההבדל בין הרמות הוא **משקל**: קו → קו תכלת → מילוי → מילוי + קו.
+   ========================================================================== */
+.tier{
+  display:inline-flex; align-items:center;
+  font-size:11px; font-weight:700; line-height:1;
+  padding:4px 9px; border-radius:8px; white-space:nowrap;
+  background:none; border:1px solid var(--border); color:var(--muted);
+}
+.tier[data-tier="active"] {border-color:var(--accent-soft); color:var(--accent-2)}
+.tier[data-tier="trusted"]{background:var(--accent-soft); border-color:transparent; color:var(--accent-2)}
+.tier[data-tier="top"]    {background:var(--accent-soft); border-color:var(--accent-solid); color:var(--accent-2)}
+/* `new` הוא ברירת המחדל שבכלל הבסיס — בלי כלל משלו, כי אין לו הבדל. */
+
+.tier[data-on-media]{border-width:1.6px; border-color:var(--surface)}
+.tier[data-on-media][data-tier="top"]{border-color:var(--accent-solid)}
+
+
+/* ==========================================================================
+   6. .skel — שלד
+   --------------------------------------------------------------------------
+   מעל 300ms (סף דוהרטי, R1b §2) — במקום "טוען…".
+   **הבהוב אחד לכל העמוד**: `background-position` נעה על גרדיאנט
+   רחב, ולכן כל השלדים בעמוד נעים יחד ולא כל אחד לעצמו. שלדים
+   שמהבהבים בפאזות שונות נראים כמו תקלה.
+   הגובה דרך `--skel-h` — רכיב אחד לכל השלדים, לא שלושה.
+   ========================================================================== */
+@keyframes skelShimmer{to{background-position:-200% 0}}
+.skel{
+  --skel-h:14px;
+  block-size:var(--skel-h); inline-size:100%;
+  border-radius:8px; margin-block-end:8px;
+  background:linear-gradient(90deg,
+    var(--surface-2) 0%, var(--border) 35%, var(--surface-2) 70%);
+  background-size:200% 100%;
+  animation:skelShimmer 1.25s linear infinite;
+}
+.skel[data-round]{border-radius:50%; inline-size:var(--skel-h)}
+
+
+/* ==========================================================================
+   7. תנועה — הכל מבוטל ב-reduced-motion
+   --------------------------------------------------------------------------
+   **מצטרף לשני הבלוקים הקיימים בקובץ, לא כותב שלישי.**
+   אם המפתח מדביק את הבלוק הזה אחרי הבלוק הקיים ב-746, המחיקה
+   הזו גוברת עליו בסדר המקור. **ה-✓ הנמתח ורגע התגמול מבוטלים
+   גם הם** — זו הדרישה המפורשת ב-R1b §3, כולל את רגע התגמול.
+   ========================================================================== */
+@media (prefers-reduced-motion:reduce){
+  .bell[data-nudge] .icon,
+  .stars[data-input] button:active,
+  .skel{animation:none}
+  /* השלד עדיין צריך להיראות כשלד ולא כפס ריק */
+  .skel{background:var(--surface-2)}
+}
+
+/* ==========================================================================
+   8. §13 — תמונות. אושר כלשונו ב-ROUND-S §10
+   --------------------------------------------------------------------------
+   `--hero-scrim` כטוקן ולא כ-rgba חופשי — ההכרעה שלך.
+   ========================================================================== */
+:root{
+  /* **נמדד על המקרה הגרוע: תמונה לבנה מלאה.**
+     .45 → 2.90 ✗ · .55 → 3.88 (גדול בלבד) · .65 → 5.38 · .72 → 6.86
+     · **.78 → 8.53** · .84 → 10.58
+     (בתגובה הקודמת העריכו ≈8.9. הערך הנמדד הוא 8.53.)
+     **ועל תמונה כהה (#2b2b2b) ההפרש זניח:** .55 נותן 15.98 ו-.78
+     נותן 16.53 — כלומר השכבה כמעט אינה משנה תצלום טוב, והיא
+     עובדת רק היכן שצריך אותה. אם תעדיף מגע קל יותר על התמונה,
+     .65 עדיין עובר בנוחות (5.38). */
+  --hero-scrim:linear-gradient(to bottom, transparent 42%, rgba(13,27,51,.78) 100%);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    /* בכהה התמונה יושבת על רקע כהה ממילא; השכבה מעט חזקה יותר
+       כדי שהמעבר לתחתית הכרטיס לא ייראה כקו. */
+    --hero-scrim:linear-gradient(to bottom, transparent 38%, rgba(0,0,0,.82) 100%);
+  }
+}
+:root[data-theme="dark"]{
+  --hero-scrim:linear-gradient(to bottom, transparent 38%, rgba(0,0,0,.82) 100%);
+}
+
+.hero{
+  position:relative; inline-size:100%; block-size:250px;
+  background:var(--surface-2) center/cover no-repeat;
+  display:flex; align-items:flex-start; justify-content:space-between;
+  padding:16px; overflow:hidden;
+}
+/* **בלי תמונה ה-hero מתקצר** — ההכרעה שלך. 250px של משטח ריק
+   במסך מודעה הם מקום שמבטיח תוכן שאינו שם. */
+.hero[data-empty]{block-size:132px; background:var(--accent-soft)}
+.hero[data-empty] .hero-fade{display:none}
+
+.hero-fade{
+  position:absolute; inset-inline:0; inset-block-end:0; block-size:58%;
+  background:var(--hero-scrim); pointer-events:none;
+}
+/* הכותרת יושבת מעל השכבה, ולכן היא אחריה בסדר הערימה. */
+.hero > *:not(.hero-fade){position:relative; z-index:1}
+
+.hero-count{
+  position:absolute; inset-block-end:12px; inset-inline-start:12px; z-index:1;
+  background:rgba(13,27,51,.72); color:var(--on-accent);
+  font-size:12px; font-weight:600; padding:5px 9px; border-radius:8px;
+  font-variant-numeric:tabular-nums;
+}
+
+/* ---------- רשת העריכה ---------- */
+.ph-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px}
+.ph{
+  position:relative; aspect-ratio:1; border-radius:var(--r-s); overflow:hidden;
+  background:var(--surface-2) center/cover no-repeat;
+  border:1px solid var(--border); padding:0; cursor:pointer;
+}
+.ph[data-cover]{border:2px solid var(--accent-solid)}
+.ph[data-cover]::after{
+  content:attr(data-cover);
+  position:absolute; inset-block-end:0; inset-inline:0;
+  background:var(--accent-solid); color:var(--on-accent);
+  font-size:10.5px; font-weight:700; line-height:1; padding:4px 0; text-align:center;
+}
+/* אריח ה-"+" — מתאר ולא מילוי. הוא פעולה משנית; הכחול המלא
+   שמור ל-CTA (פון רסטורף). */
+.ph[data-add]{
+  background:none; border:1.6px dashed var(--border-strong);
+  display:flex; align-items:center; justify-content:center;
+  color:var(--accent); font-size:26px; font-weight:300; line-height:1;
+}
+
+/* תמונה בכרטיס — `object-fit:cover` לפי התוספת. הגליף נשאר
+   `.cat-badge[data-on-media]` הקיים ולא מחלקה חדשה. */
+.lc-media[data-photo]{background-size:cover; background-position:center}
+
+
+/* ==========================================================================
+   9. T3 — מחוון הטווח. **יעד המגע היום הוא 26px, לא 44**
+   --------------------------------------------------------------------------
+   נמדד ב-`app.html` 231,575: `input[type=range]{height:26px}` והידית
+   22px. הדרישה שלך ב-T3 היא 44px, ועכשיו כשהמחוון עולה לבית —
+   למקום שבו אצבע גוררת אותו כל יום — זה כבר לא פרט.
+
+   **מגביהים את הקלט ולא את הידית.** ידית של 44px תיראה כמו כדור;
+   הקלט הוא יעד המגע, והוא זה שצריך לגדול. הידית נשארת 22px,
+   הפס נשאר 6px, והמראה לא זז.
+   ========================================================================== */
+input[type=range]{block-size:44px}
+/* הידית ממורכזת על פס של 6px עם גבול 1px: (6+2-22)/2 = -7px.
+   הערך הקיים היה -9px לגובה קלט אחר; בגובה 44 זה מה שמרכז. */
+input[type=range]::-webkit-slider-thumb{margin-top:-7px}
+
+/* המחוון בבית — רכיב אחד לכל מושג (§7ב), אותו `#rad` של המפה.
+   כאן רק הרווח סביבו, כדי שהוא לא ייצמד לברכה. */
+.range-row{display:flex; align-items:center; gap:12px; padding:2px 0 6px}
+.range-row label{font-size:12.5px; font-weight:700; color:var(--muted);
+  white-space:nowrap; flex:none}
+.range-row input[type=range]{flex:1; min-inline-size:0}
+.range-row output{font-size:13px; font-weight:800; color:var(--accent-2);
+  font-variant-numeric:tabular-nums; flex:none; min-inline-size:62px; text-align:end}
+
+/* END R2 =================================================================== */

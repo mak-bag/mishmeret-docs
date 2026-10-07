@@ -1,0 +1,41 @@
+/* BEGIN V1-B ===============================================================
+   DESIGN-V1 · מסירה B — מסכים 5–12 בשפת הדמו · Designer · 07/10/2026
+   נמדד מול app.html 265,527 · md5 47BC3F125EA7.
+
+   מיקום ההדבקה: **אחרי BEGIN V1-A2**. הבלוק נשען על הטוקנים של V1-A2
+   (--wash, --card, --ink ...) ולא מגדיר אותם מחדש.
+   ========================================================================= */
+
+
+/* ==========================================================================
+   0. הפניית הטוקנים הישנים לחדשים — האפליקציה כולה עוברת לשפת הדמו
+   --------------------------------------------------------------------------
+   בשלושה מקומות, כמו כל טוקן: הבלוקים הכהים של app.html מגדירים את הישנים
+   בערכים קבועים ב-(0,2,0), ו-:root לבדו היה מפסיד להם בערכה הכהה.
+   הערכים הם var() ולכן זהים בשלושה — הכהה מגיע מהטוקנים של V1-A2.
+
+   **מה לא הופנה, ולמה:**
+   --muted     נשאר (#5b6b85 / #93a4c0). הוא יושב על --surface-2 בשלושה
+               כללים לפחות, ו---soft שם = 4.35 — נופל. ה-#5b6b85 כבר בין
+               --ink-2 ל---soft של הדמו, ולא נראה שונה.
+   --muted-2   נשאר. ארבעה שימושים, כולם על --bg/--surface.
+   --shadow-lift  נשאר — צל של גיליון. --sh-float של הדמו כבד מדי ל-sheet.
+   --field     נשאר. שדה שקוע מתחת למשטח בכהה — נמדד ב-R1.
+   ========================================================================== */
+:root{
+  --bg:var(--wash); --surface:var(--card); --surface-2:var(--fill);
+  --text:var(--ink); --border:var(--hair); --border-strong:var(--line);
+  --accent-soft:var(--tint); --shadow:var(--sh-card); --shadow-cta:var(--sh-go);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:var(--wash); --surface:var(--card); --surface-2:var(--fill);
+  --text:var(--ink); --border:var(--hair); --border-strong:var(--line);
+  --accent-soft:var(--tint); --shadow:var(--sh-card); --shadow-cta:var(--sh-go);
+}}
+:root[data-theme="dark"]{
+  --bg:var(--wash); --surface:var(--card); --surface-2:var(--fill);
+  --text:var(--ink); --border:var(--hair); --border-strong:var(--line);
+  --accent-soft:var(--tint); --shadow:var(--sh-card); --shadow-cta:var(--sh-go);
+}
+
+/* END V1-B ================================================================= */
